@@ -9,7 +9,7 @@
 function setup()
 {
 
-  vt = new ViewTools(canvas);
+  vt = new ViewTools(canvas,context);
   // Touch Event Handlers 
   canvas.addEventListener('touchstart', onTouchStart);
   canvas.addEventListener('touchend', onTouchEnd);

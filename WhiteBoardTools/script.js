@@ -1,7 +1,7 @@
 
 class ViewTools
 {
-  constructor(canvas)
+  constructor(canvas,context)
   {
     this.canvas=canvas;
     this.ctx=context;
