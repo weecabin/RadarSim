@@ -10,6 +10,10 @@ function setup()
 {
   AddStatus("Entering setup()");
   AddStatus(JSON.stringify(vt));
+  singleTouch = false;
+  doubleTouch = false;
+  dragmv = undefined; // dragging from this moving vector object 
+  dragto = undefined;
   // Touch Event Handlers 
   canvas.addEventListener('touchstart', onTouchStart);
   canvas.addEventListener('touchend', onTouchEnd);
