@@ -1,6 +1,14 @@
+// get our canvas element
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+
+        // list of all strokes drawn
+        const drawings = [];
+
 
 function setup()
 {
+
   vt = new ViewTools(canvas);
   // Touch Event Handlers 
   canvas.addEventListener('touchstart', onTouchStart);
@@ -9,12 +17,7 @@ function setup()
   canvas.addEventListener('touchmove', onTouchMove);
 }
 
-        // get our canvas element
-        const canvas = document.getElementById("canvas");
-        const context = canvas.getContext("2d");
-
-        // list of all strokes drawn
-        const drawings = [];
+        
         var vt;
 
         // disable right clicking
@@ -26,8 +29,8 @@ function setup()
         
         function redrawCanvas() {
             // set the canvas to the size of the window
-            canvas.width = 400;
-            canvas.height = 400;
+            canvas.width = 600;
+            canvas.height = 600;
             //canvas.width = document.body.clientWidth;
             //canvas.height = document.body.clientHeight;
 
@@ -221,7 +224,7 @@ function AddPlane()
   let plane={type:"plane",length:12,width:6,color:"black",
                drag:0,gravity:0};
   let movingVector = new MovingVector(.1,.1,0,0,plane,vt);
-  //AddStatus(JSON.stringify(movingVector));
+  AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
 }
 
