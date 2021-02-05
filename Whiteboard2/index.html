@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Canvas</title>
+
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+
+            /* Prevent document pinch-zoom & touch-hold-to-highlight */
+            touch-action: none;
+
+            -webkit-touch-callout: none;
+            /* iOS Safari */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Old versions of Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+            user-select: none;
+            /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+        }
+    </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="canvasdiv" width="400px" height="400px">
+    <canvas id="canvas">Your browser does not support HTML5 canvas</canvas>
+  </div>
+  <input type="button" value="Add Plane" onclick="AddPlane()">
+  <input id="animate" type="button" value="Start Animation"
+         onclick="StartAnimation()">
+  <input id="collision" type="checkbox" checked> Collision Detection
+  <input id="vector" type="radio" name="drawoption" checked>Vector
+  <input id="sketch" type="radio" name="drawoption">Sketch
+  <p id="debug01"></p><br>
+
+  <textarea id="status" value="Status..."></textarea>
+
+  <script src="../WhiteBoardTools/script.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
