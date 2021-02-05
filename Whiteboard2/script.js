@@ -21,6 +21,7 @@ function setup()
   canvas.addEventListener('touchend', onTouchEnd);
   canvas.addEventListener('touchcancel', onTouchEnd);
   canvas.addEventListener('touchmove', onTouchMove);
+  PlaneButtonsOff(true);
   AddStatus("Exiting setup()");
   }
   catch(err)
@@ -38,8 +39,8 @@ function setup()
         
         function redrawCanvas() {
             // set the canvas to the size of the window
-            canvas.width = document.body.clientWidth*.8;
-            canvas.height = 600;
+            canvas.width = document.body.clientWidth;
+            canvas.height = document.body.clientHeight*.8;
             //canvas.width = document.body.clientWidth;
             //canvas.height = document.body.clientHeight;
 
@@ -227,7 +228,7 @@ function get(id)
   return document.getElementById(id);
 }
 
-function ClearDrawing()
+function ClearSketch()
 {
   for (let i=drawings.length-1;i>=0;i--)
   {
@@ -245,24 +246,27 @@ function AddPlanes()
   switch (button.value)
   {
     case "Add Planes":
-    button.value="Stop";
+    let x = vt.toTrueX(0);
+    let ymin = vt.toTrueY(0);
+    let ymax = vt.toTrueY(canvas.height);
+    button.value="Stop Add";
     var id2 = setInterval(addPlanes, 5000);
     function addPlanes()
     {
-      if (button.value!="Stop")
+      if (button.value!="Stop Add") 
       {
-        clearIngerval(id2);
+        clearInterval(id2);
         return;
       }
-      let rand = Math.random()*canvas.width;
+      let rand = ymin+Math.random()*(ymax-ymin);
       let plane={type:"plane",length:15,width:8,color:"black",
                drag:0,gravity:0};
-      let movingVector = new MovingVector(.14,0,0,rand,plane,vt);
+      let movingVector = new MovingVector(.14,0,x,rand,plane,vt);
       Objs.push(movingVector);
     }
     break;
 
-    case "Stop":
+    case "Stop Add":
     button.value="Add Planes";
     break;
   }
@@ -279,14 +283,24 @@ function AddPlane()
   Objs.push(movingVector);
 }
 
+function PlaneButtonsOff(truefalse)
+{
+  get("addplane").disabled=truefalse;
+  if (get("addplanes").value=="Stop Add")
+    AddPlanes(); // callmit again to stop it
+  get("addplanes").disabled=truefalse;
+}
+
 function StartAnimation()
 {
-  if (runAnimate)
+  if (runAnimate) // running, so stop
   {
     runAnimate=false;
     get("animate").value="Start Animation";
+    AddPlanes(true);
+    PlaneButtonsOff(true);
   }
-  else
+  else // not running, so start
   {
     runAnimate=true;
     get("animate").value="Stop Animation";
@@ -294,6 +308,7 @@ function StartAnimation()
     drawings.push({lbl:"hanger",x0:0,y0:0,x1:0,y1:30});
     drawings.push({lbl:"hanger",x0:0,y0:30,x1:30,y1:0});
     Animate();
+    PlaneButtonsOff(false);
   }
 }
 

@@ -1,9 +1,22 @@
 body {
+  overflow-y:scroll
   background: #fafafa;
+}
+
+.divider 
+{
+  height: 2px;
+  clear: both;
+  /* background-color: #D5CF8E;  */
+} 
+
+#canvas
+{
+  border:2px solid;
 }
 
 #status
 {
   width:800px;
-  height:200px; 
+  height:100px; 
 }
