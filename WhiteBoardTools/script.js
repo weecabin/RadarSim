@@ -292,8 +292,8 @@ class MovingVector
     this.drawObject=drawObject;
     this.turnTargetDirection=this.turnDeltaAngle=0;
     this.vt=view;
-    AddStatus(JSON.stringify(this.drawObject));
-    AddStatus("View="+JSON.stringify(this.vt));
+    //AddStatus(JSON.stringify(this.drawObject));
+    //AddStatus("View="+JSON.stringify(this.vt));
   }
   Snapshot()
   {
@@ -318,7 +318,7 @@ class MovingVector
   {
     //AddStatus("Entering DrawPath");
     let firstMove=true
-    let zoomMult=1;
+    let zoomMult=1+.8*(this.vt.scale-1)
     for (let da of drawArray)
     {
       let x;

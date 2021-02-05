@@ -38,7 +38,7 @@ function setup()
         
         function redrawCanvas() {
             // set the canvas to the size of the window
-            canvas.width = 600;
+            canvas.width = document.body.clientWidth*.8;
             canvas.height = 600;
             //canvas.width = document.body.clientWidth;
             //canvas.height = document.body.clientHeight;
@@ -66,14 +66,12 @@ function setup()
             redrawCanvas();
         });
 
-        
-
         function drawLine(x0, y0, x1, y1) {
             context.beginPath();
             context.moveTo(x0, y0);
             context.lineTo(x1, y1);
             context.strokeStyle = '#000';
-            context.lineWidth = 2;
+            context.lineWidth = 1;
             context.stroke();
         }
 
@@ -117,6 +115,7 @@ function setup()
               {
                 // add to history
                 drawings.push({
+                    lbl: "line",
                     x0: prevScaledX,
                     y0: prevScaledY,
                     x1: scaledX,
@@ -170,6 +169,7 @@ function setup()
                 // calculate the screen scale change
                 var zoomAmount = hypot / prevHypot;
                 vt.scale = vt.scale * zoomAmount;
+                get("debug02").innerHTML="Scale="+vt.scale.toFixed(2);
                 const scaleAmount = 1 - zoomAmount;
 
                 // calculate how many pixels the midpoints have moved in the x and y direction
@@ -210,12 +210,15 @@ function setup()
           let dragVector=new Vector(vt.toTrueX(dragto[0])-dragmv.xpos,
                                     vt.toTrueY(dragto[1])-dragmv.ypos);
           // allow the user to cancel the vector by moving back to the origin
-          if (dragVector.GetLength()<25)
+          if (dragVector.GetLength()<(25/vt.scale))
           {
             dragmv=undefined;
             return;
           }
-          dragmv.vector.SetDirection(dragVector.GetDirection());
+          if (get("radiusturn").checked)
+            dragmv.SlewTo(dragVector);
+          else
+            dragmv.vector.SetDirection(dragVector.GetDirection());
           dragmv=undefined;
         }
 
@@ -224,16 +227,55 @@ function get(id)
   return document.getElementById(id);
 }
 
+function ClearDrawing()
+{
+  for (let i=drawings.length-1;i>=0;i--)
+  {
+    if (drawings[i].lbl=="line")
+    drawings.pop();
+  }
+  redrawCanvas();
+}
 
 var Objs=[];
+
+function AddPlanes()
+{
+  let button = get("addplanes");
+  switch (button.value)
+  {
+    case "Add Planes":
+    button.value="Stop";
+    var id2 = setInterval(addPlanes, 5000);
+    function addPlanes()
+    {
+      if (button.value!="Stop")
+      {
+        clearIngerval(id2);
+        return;
+      }
+      let rand = Math.random()*canvas.width;
+      let plane={type:"plane",length:15,width:8,color:"black",
+               drag:0,gravity:0};
+      let movingVector = new MovingVector(.14,0,0,rand,plane,vt);
+      Objs.push(movingVector);
+    }
+    break;
+
+    case "Stop":
+    button.value="Add Planes";
+    break;
+  }
+}
+
 function AddPlane()
 {
   AddStatus("In AddPlane");
   let speed=1;
-  let plane={type:"plane",length:12,width:6,color:"black",
+  let plane={type:"plane",length:15,width:8,color:"black",
                drag:0,gravity:0};
   let movingVector = new MovingVector(.1,.1,0,0,plane,vt);
-  AddStatus(JSON.stringify(movingVector));
+  //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
 }
 
@@ -248,6 +290,9 @@ function StartAnimation()
   {
     runAnimate=true;
     get("animate").value="Stop Animation";
+    drawings.push({lbl:"hanger",x0:0,y0:0,x1:30,y1:0});
+    drawings.push({lbl:"hanger",x0:0,y0:0,x1:0,y1:30});
+    drawings.push({lbl:"hanger",x0:0,y0:30,x1:30,y1:0});
     Animate();
   }
 }
