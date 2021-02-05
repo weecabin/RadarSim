@@ -4,21 +4,19 @@
 
         // list of all strokes drawn
         const drawings = [];
-
+        const vt = new ViewTools(canvas,context);
 
 function setup()
 {
-
-  vt = new ViewTools(canvas,context);
+  AddStatus("Entering setup()");
+  AddStatus(JSON.stringify(vt));
   // Touch Event Handlers 
   canvas.addEventListener('touchstart', onTouchStart);
   canvas.addEventListener('touchend', onTouchEnd);
   canvas.addEventListener('touchcancel', onTouchEnd);
   canvas.addEventListener('touchmove', onTouchMove);
+  AddStatus("Exiting setup()");
 }
-
-        
-        var vt;
 
         // disable right clicking
         document.oncontextmenu = function () 
