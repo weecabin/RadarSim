@@ -8,6 +8,8 @@
 
 function setup()
 {
+  try
+  {
   AddStatus("Entering setup()");
   AddStatus(JSON.stringify(vt));
   singleTouch = false;
@@ -20,6 +22,11 @@ function setup()
   canvas.addEventListener('touchcancel', onTouchEnd);
   canvas.addEventListener('touchmove', onTouchMove);
   AddStatus("Exiting setup()");
+  }
+  catch(err)
+  {
+    AddStatus(err);
+  }
 }
 
         // disable right clicking
