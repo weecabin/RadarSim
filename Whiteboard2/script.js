@@ -1,19 +1,29 @@
 
+function setup()
+{
+  vt = new ViewTools(canvas);
+  // Touch Event Handlers 
+  canvas.addEventListener('touchstart', onTouchStart);
+  canvas.addEventListener('touchend', onTouchEnd);
+  canvas.addEventListener('touchcancel', onTouchEnd);
+  canvas.addEventListener('touchmove', onTouchMove);
+}
 
         // get our canvas element
         const canvas = document.getElementById("canvas");
         const context = canvas.getContext("2d");
 
-        // disable right clicking
-        document.oncontextmenu = function () {
-            return false;
-        }
-
         // list of all strokes drawn
         const drawings = [];
+        var vt;
 
-        var vt = new ViewTools(canvas);
+        // disable right clicking
+        document.oncontextmenu = function () 
+        {
+          return false;
+        }
 
+        
         function redrawCanvas() {
             // set the canvas to the size of the window
             canvas.width = 400;
@@ -44,11 +54,7 @@
             redrawCanvas();
         });
 
-        // Touch Event Handlers 
-        canvas.addEventListener('touchstart', onTouchStart);
-        canvas.addEventListener('touchend', onTouchEnd);
-        canvas.addEventListener('touchcancel', onTouchEnd);
-        canvas.addEventListener('touchmove', onTouchMove);
+        
 
         function drawLine(x0, y0, x1, y1) {
             context.beginPath();
