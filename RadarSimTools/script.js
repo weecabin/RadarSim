@@ -318,7 +318,7 @@ class MovingVector
   {
     //AddStatus("Entering DrawPath");
     let firstMove=true
-    let zoomMult=1+.8*(this.vt.scale-1)
+    let zoomMult=1+.98*(this.vt.scale-1)
     for (let da of drawArray)
     {
       let x;

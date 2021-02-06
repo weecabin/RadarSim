@@ -37,10 +37,10 @@ function setup()
         }
 
         
-        function redrawCanvas() {
+        function redrawCanvas(heightPercent=80,widthPercent=100) {
             // set the canvas to the size of the window
-            canvas.width = document.body.clientWidth;
-            canvas.height = document.body.clientHeight*.8;
+            canvas.width = document.body.clientWidth*widthPercent/100;
+            canvas.height = document.body.clientHeight*heightPercent/100;
             //canvas.width = document.body.clientWidth;
             //canvas.height = document.body.clientHeight;
 
@@ -222,6 +222,10 @@ function setup()
             dragmv.vector.SetDirection(dragVector.GetDirection());
           dragmv=undefined;
         }
+function Settings()
+{
+  redrawCanvas(80,80);
+}
 
 function get(id)
 {
@@ -246,9 +250,11 @@ function AddPlanes()
   switch (button.value)
   {
     case "Add Planes":
-    let x = vt.toTrueX(0);
     let ymin = vt.toTrueY(0);
     let ymax = vt.toTrueY(canvas.height);
+    let xmin = vt.toTrueX(0);
+    let xmax = vt.toTrueX(canvas.width);
+    let side=0;
     button.value="Stop Add";
     var id2 = setInterval(addPlanes, 5000);
     function addPlanes()
@@ -258,11 +264,33 @@ function AddPlanes()
         clearInterval(id2);
         return;
       }
-      let rand = ymin+Math.random()*(ymax-ymin);
+      let randy = ymin+Math.random()*(ymax-ymin);
+      let randx = xmin+Math.random()*(xmax-xmin);
       let plane={type:"plane",length:15,width:8,color:"black",
                drag:0,gravity:0};
-      let movingVector = new MovingVector(.14,0,x,rand,plane,vt);
-      Objs.push(movingVector);
+      let movingVector;
+      switch ((++side)%4)
+      {
+        case 0:// left
+        movingVector = new MovingVector(.14,0,xmin,randy,plane,vt);
+        Objs.push(movingVector);
+        break;
+
+        case 1:// top
+        movingVector = new MovingVector(0,.14,randx,ymin,plane,vt);
+        Objs.push(movingVector);
+        break;
+
+        case 2:// right
+        movingVector = new MovingVector(-.14,0,xmax,randy,plane,vt);
+        Objs.push(movingVector);
+        break;
+
+        case 3:// bottom
+        movingVector = new MovingVector(0,-.14,randx,ymax,plane,vt);
+        Objs.push(movingVector);
+        break;
+      }
     }
     break;
 
@@ -331,7 +359,8 @@ try
     } 
     else 
     {
-      // world edge is canvas size / zoom
+      // bump the position of all objects
+      // new positions will be updated when we redraw
       for (let mv of Objs)
       {
         mv.Move();
@@ -357,6 +386,7 @@ try
       }
       //AddStatus("Clear, then draw everything");
       redrawCanvas();
+      // draw the drag vector if currently dragging
       if (dragmv!=undefined)
       {
         drawLine(vt.toScreenX(dragmv.xpos),vt.toScreenY(dragmv.ypos),
@@ -364,6 +394,7 @@ try
         //AddStatus(dragmv.xpos+","+dragmv.ypos);
       }
       get("debug01").innerHTML=Objs.length+" Objects";
+      // draw all the planes
       for (let mv of Objs)
       {
         mv.Draw(context);
