@@ -323,7 +323,7 @@ function AddPlane()
   let speed=1;
   let plane={type:"plane",length:15,width:8,color:"black",
                drag:0,gravity:0};
-  let movingVector = new MovingVector(.3,.3,0,0,plane,vt);
+  let movingVector = new MovingVector(.1,.1,0,0,plane,vt);
   //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
 }
