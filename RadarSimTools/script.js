@@ -55,12 +55,14 @@ Parameters
 Return Value
 
 *************************************************************/ 
-const ToDegrees = radians => (radians * 180) / Math.PI
-const ToRadians = degrees => (degrees * Math.PI) / 180
+const ToDegrees = radians => (radians * 180) / Math.PI;
+const ToRadians = degrees => (degrees * Math.PI) / 180;
 
-const EPSILON = 0.00000001
+const EPSILON = 0.00000001;
 const AreEqual = (one, other, epsilon = EPSILON) =>
-  Math.abs(one - other) < epsilon
+  Math.abs(one - other) < epsilon;
+
+const FixHeading = heading => heading%360<0?360+heading%360:heading%360;
 /*************************************************************
 **************************************************************
 FunctionName: get
@@ -284,7 +286,7 @@ const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0};
 const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0};
 class MovingVector
 {
-  constructor(xlen,ylen,startx,starty,drawObject=circleObj,view=null)
+  constructor(xlen,ylen,startx,starty,drawObject=circleObj,view=null,tag="none")
   {
     this.vector= new Vector(xlen,ylen);
     this.xpos=startx;
@@ -292,6 +294,7 @@ class MovingVector
     this.drawObject=drawObject;
     this.turnTargetDirection=this.turnDeltaAngle=0;
     this.vt=view;
+    this.tag=tag;
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
   }
