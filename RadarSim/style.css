@@ -1,4 +1,4 @@
-body {
+ body {
   overflow-y:scroll
   background: #fafafa;
 }
@@ -19,4 +19,11 @@ body {
 {
   width:800px;
   height:100px; 
+}
+
+p 
+{
+  margin-bottom: .4em;
+  margin-top: .4em;
+  margin-left: 1em;
 }
