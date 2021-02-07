@@ -33,202 +33,211 @@ function setup()
   }
 }
 
-        // disable right clicking
-        document.oncontextmenu = function () 
+// disable right clicking
+document.oncontextmenu = function() {
+  return false;
+}
+
+
+function redrawCanvas(heightPercent = 80, widthPercent = 100) 
+{
+  // set the canvas to the size of the window
+  canvas.width = document.body.clientWidth * widthPercent / 100;
+  canvas.height = document.body.clientHeight * heightPercent / 100;
+  runway1.x = canvas.width / 2;
+  runway1.y = canvas.height / 2 - 10;
+  runway2.x = canvas.width / 2;
+  runway2.y = canvas.height / 2 + 10;
+  //canvas.width = document.body.clientWidth;
+  //canvas.height = document.body.clientHeight;
+
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < drawings.length; i++) 
+  {
+    const line = drawings[i];
+    drawLine(vt.toScreenX(line.x0), vt.toScreenY(line.y0),
+      vt.toScreenX(line.x1), vt.toScreenY(line.y1));
+  }
+  if (Objs != undefined) 
+  {
+    for (let mv of Objs) 
+    {
+      mv.Draw(context);
+    }
+  }
+}
+redrawCanvas();
+
+// if the window changes size, redraw the canvas
+window.addEventListener("resize", (event) => 
+{
+  redrawCanvas();
+});
+
+function drawLine(x0, y0, x1, y1) 
+{
+  context.beginPath();
+  context.moveTo(x0, y0);
+  context.lineTo(x1, y1);
+  context.strokeStyle = '#000';
+  context.lineWidth = 1;
+  context.stroke();
+}
+
+// touch functions
+const prevTouches = [null, null]; // up to 2 touches
+let singleTouch = false;
+let doubleTouch = false;
+var dragmv = undefined; // dragging from this moving vector object 
+var dragto = undefined;
+
+function onTouchStart(event) 
+{
+  //AddStatus("in Touch Start");
+  if (event.touches.length == 1) 
+  {
+    singleTouch = true;
+    doubleTouch = false;
+  }
+  if (event.touches.length >= 2) 
+  {
+    singleTouch = false;
+    doubleTouch = true;
+  }
+
+  // store the last touches
+  prevTouches[0] = event.touches[0];
+  prevTouches[1] = event.touches[1];
+
+}
+
+function onTouchMove(event) 
+{
+  // get first touch coordinates
+  const touch0X = event.touches[0].pageX;
+  const touch0Y = event.touches[0].pageY;
+  const prevTouch0X = prevTouches[0].pageX;
+  const prevTouch0Y = prevTouches[0].pageY;
+
+  const scaledX = vt.toTrueX(touch0X);
+  const scaledY = vt.toTrueY(touch0Y);
+  const prevScaledX = vt.toTrueX(prevTouch0X);
+  const prevScaledY = vt.toTrueY(prevTouch0Y);
+
+  if (singleTouch) 
+  {
+    if (get("sketch").checked) 
+    {
+      // add to history
+      drawings.push({
+        lbl: "line",
+        x0: prevScaledX,
+        y0: prevScaledY,
+        x1: scaledX,
+        y1: scaledY
+      })
+      drawLine(prevTouch0X, prevTouch0Y, touch0X, touch0Y);
+    } 
+    else  
+    {
+      if (dragmv == undefined) 
+      {
+        //AddStatus("Find the closest plane");
+        let tempmv = new MovingVector(1, 1, scaledX, scaledY);
+        let closestmv = Objs[0];
+        //AddStatus("checking distance with temp");
+        let dist = DistBetween(tempmv, closestmv);
+        for (let mv of Objs) 
         {
-          return false;
-        }
-
-        
-        function redrawCanvas(heightPercent=80,widthPercent=100) {
-            // set the canvas to the size of the window
-            canvas.width = document.body.clientWidth*widthPercent/100;
-            canvas.height = document.body.clientHeight*heightPercent/100;
-            runway1.x=canvas.width/2;
-            runway1.y=canvas.height/2-10;
-            runway2.x=canvas.width/2;
-            runway2.y=canvas.height/2+10;
-            //canvas.width = document.body.clientWidth;
-            //canvas.height = document.body.clientHeight;
-
-            context.fillStyle = '#fff';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < drawings.length; i++) 
-            {
-                const line = drawings[i];
-                drawLine(vt.toScreenX(line.x0), vt.toScreenY(line.y0),
-                         vt.toScreenX(line.x1), vt.toScreenY(line.y1));
-            }
-            if (Objs!=undefined)
-            {
-              for (let mv of Objs)
-              {
-                mv.Draw(context);
-              }
-            }
-        }
-        redrawCanvas();
-
-        // if the window changes size, redraw the canvas
-        window.addEventListener("resize", (event) => {
-            redrawCanvas();
-        });
-
-        function drawLine(x0, y0, x1, y1) {
-            context.beginPath();
-            context.moveTo(x0, y0);
-            context.lineTo(x1, y1);
-            context.strokeStyle = '#000';
-            context.lineWidth = 1;
-            context.stroke();
-        }
-
-        // touch functions
-        const prevTouches = [null, null]; // up to 2 touches
-        let singleTouch = false;
-        let doubleTouch = false;
-        var dragmv = undefined; // dragging from this moving vector object 
-        var dragto = undefined;
-        function onTouchStart(event) {
-            //AddStatus("in Touch Start");
-            if (event.touches.length == 1) {
-                singleTouch = true;
-                doubleTouch = false;
-            }
-            if (event.touches.length >= 2) {
-                singleTouch = false;
-                doubleTouch = true;
-            }
-
-            // store the last touches
-            prevTouches[0] = event.touches[0];
-            prevTouches[1] = event.touches[1];
-
-        }
-        function onTouchMove(event) {
-            // get first touch coordinates
-            const touch0X = event.touches[0].pageX;
-            const touch0Y = event.touches[0].pageY;
-            const prevTouch0X = prevTouches[0].pageX;
-            const prevTouch0Y = prevTouches[0].pageY;
-
-            const scaledX = vt.toTrueX(touch0X);
-            const scaledY = vt.toTrueY(touch0Y);
-            const prevScaledX = vt.toTrueX(prevTouch0X);
-            const prevScaledY = vt.toTrueY(prevTouch0Y);
-
-            if (singleTouch) 
-            {
-              if (get("sketch").checked)
-              {
-                // add to history
-                drawings.push({
-                    lbl: "line",
-                    x0: prevScaledX,
-                    y0: prevScaledY,
-                    x1: scaledX,
-                    y1: scaledY
-                })
-                drawLine(prevTouch0X, prevTouch0Y, touch0X, touch0Y);
-              }
-              else
-              {
-                if (dragmv==undefined)
-                {
-                  //AddStatus("Find the closest plane");
-                  let tempmv=new MovingVector(1,1,scaledX,scaledY);
-                  let closestmv=Objs[0];
-                  //AddStatus("checking distance with temp");
-                  let dist=DistBetween(tempmv,closestmv);
-                  for(let mv of Objs)
-                  {
-                    //AddStatus("checking distance");
-                    let testdist=DistBetween(mv,tempmv);
-                    if (testdist<dist)
-                    {
-                      //AddStatus("found closest="+mv.xpos+","+mv.ypos);
-                      dist=testdist;
-                      closestmv=mv;
-                    }
-                  }
-                  dragmv=closestmv;
-                }
-                dragto=[touch0X,touch0Y]
-              }
-            }
-
-            if (doubleTouch) {
-                // get second touch coordinates
-                const touch1X = event.touches[1].pageX;
-                const touch1Y = event.touches[1].pageY;
-                const prevTouch1X = prevTouches[1].pageX;
-                const prevTouch1Y = prevTouches[1].pageY;
-
-                // get midpoints
-                const midX = (touch0X + touch1X) / 2;
-                const midY = (touch0Y + touch1Y) / 2;
-                const prevMidX = (prevTouch0X + prevTouch1X) / 2;
-                const prevMidY = (prevTouch0Y + prevTouch1Y) / 2;
-
-                // calculate the distances between the touches
-                const hypot = Math.sqrt(Math.pow((touch0X - touch1X), 2) + Math.pow((touch0Y - touch1Y), 2));
-                const prevHypot = Math.sqrt(Math.pow((prevTouch0X - prevTouch1X), 2) + Math.pow((prevTouch0Y - prevTouch1Y), 2));
-
-                // calculate the screen scale change
-                var zoomAmount = hypot / prevHypot;
-                vt.scale = vt.scale * zoomAmount;
-                get("debug02").innerHTML="Scale="+vt.scale.toFixed(2);
-                const scaleAmount = 1 - zoomAmount;
-
-                // calculate how many pixels the midpoints have moved in the x and y direction
-                const panX = midX - prevMidX;
-                const panY = midY - prevMidY;
-                // scale this movement based on the zoom level
-                vt.offsetX += (panX / vt.scale);
-                vt.offsetY += (panY / vt.scale);
-
-                // Get the relative position of the middle of the zoom.
-                // 0, 0 would be top left. 
-                // 0, 1 would be top right etc.
-                var zoomRatioX = midX / canvas.clientWidth;
-                var zoomRatioY = midY / canvas.clientHeight;
-
-                // calculate the amounts zoomed from each edge of the screen
-                const unitsZoomedX = vt.trueWidth() * scaleAmount;
-                const unitsZoomedY = vt.trueHeight() * scaleAmount;
-
-                const unitsAddLeft = unitsZoomedX * zoomRatioX;
-                const unitsAddTop = unitsZoomedY * zoomRatioY;
-
-                vt.offsetX += unitsAddLeft;
-                vt.offsetY += unitsAddTop;
-
-                redrawCanvas();
-            }
-            prevTouches[0] = event.touches[0];
-            prevTouches[1] = event.touches[1];
-        }
-        function onTouchEnd(event) 
-        {
-          singleTouch = false;
-          doubleTouch = false;
-
-          if (Objs.length==0 || dragmv==undefined)return;
-          //AddStatus(dragmv.Snapshot());
-          let dragVector=new Vector(vt.toTrueX(dragto[0])-dragmv.xpos,
-                                    vt.toTrueY(dragto[1])-dragmv.ypos);
-          // allow the user to cancel the vector by moving back to the origin
-          if (dragVector.GetLength()<(25/vt.scale))
-          {
-            dragmv=undefined;
-            return;
+          //AddStatus("checking distance");
+          let testdist = DistBetween(mv, tempmv);
+          if (testdist < dist) {
+            //AddStatus("found closest="+mv.xpos+","+mv.ypos);
+            dist = testdist;
+            closestmv = mv;
           }
-          if (get("radiusturn").checked)
-            dragmv.SlewTo(dragVector);
-          else
-            dragmv.vector.SetDirection(dragVector.GetDirection());
-          dragmv=undefined;
         }
+        dragmv = closestmv;
+      }
+      dragto = [touch0X, touch0Y]
+    }
+  }
+
+  if (doubleTouch) 
+  {
+    // get second touch coordinates
+    const touch1X = event.touches[1].pageX;
+    const touch1Y = event.touches[1].pageY;
+    const prevTouch1X = prevTouches[1].pageX;
+    const prevTouch1Y = prevTouches[1].pageY;
+
+    // get midpoints
+    const midX = (touch0X + touch1X) / 2;
+    const midY = (touch0Y + touch1Y) / 2;
+    const prevMidX = (prevTouch0X + prevTouch1X) / 2;
+    const prevMidY = (prevTouch0Y + prevTouch1Y) / 2;
+
+    // calculate the distances between the touches
+    const hypot = Math.sqrt(Math.pow((touch0X - touch1X), 2) + Math.pow((touch0Y - touch1Y), 2));
+    const prevHypot = Math.sqrt(Math.pow((prevTouch0X - prevTouch1X), 2) + Math.pow((prevTouch0Y - prevTouch1Y), 2));
+
+    // calculate the screen scale change
+    var zoomAmount = hypot / prevHypot;
+    vt.scale = vt.scale * zoomAmount;
+    get("debug02").innerHTML = "Scale=" + vt.scale.toFixed(2);
+    const scaleAmount = 1 - zoomAmount;
+
+    // calculate how many pixels the midpoints have moved in the x and y direction
+    const panX = midX - prevMidX;
+    const panY = midY - prevMidY;
+    // scale this movement based on the zoom level
+    vt.offsetX += (panX / vt.scale);
+    vt.offsetY += (panY / vt.scale);
+
+    // Get the relative position of the middle of the zoom.
+    // 0, 0 would be top left. 
+    // 0, 1 would be top right etc.
+    var zoomRatioX = midX / canvas.clientWidth;
+    var zoomRatioY = midY / canvas.clientHeight;
+
+    // calculate the amounts zoomed from each edge of the screen
+    const unitsZoomedX = vt.trueWidth() * scaleAmount;
+    const unitsZoomedY = vt.trueHeight() * scaleAmount;
+
+    const unitsAddLeft = unitsZoomedX * zoomRatioX;
+    const unitsAddTop = unitsZoomedY * zoomRatioY;
+
+    vt.offsetX += unitsAddLeft;
+    vt.offsetY += unitsAddTop;
+
+    redrawCanvas();
+  }
+  prevTouches[0] = event.touches[0];
+  prevTouches[1] = event.touches[1];
+}
+
+function onTouchEnd(event) 
+  {
+  singleTouch = false;
+  doubleTouch = false;
+
+  if (Objs.length == 0 || dragmv == undefined) return;
+  //AddStatus(dragmv.Snapshot());
+  let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
+    vt.toTrueY(dragto[1]) - dragmv.ypos);
+  // allow the user to cancel the vector by moving back to the origin
+  if (dragVector.GetLength() < (25 / vt.scale)) 
+  {
+    dragmv = undefined;
+    return;
+  }
+  if (get("radiusturn").checked)
+    dragmv.SlewTo(dragVector);
+  else
+    dragmv.vector.SetDirection(dragVector.GetDirection());
+  dragmv = undefined;
+}
 function Settings()
 {
   redrawCanvas(80,80);
@@ -453,6 +462,7 @@ try
               ((Math.abs(mvy-r1y)<2) || (Math.abs(mvy-r2y)<2))
              )
           {
+            mv.CancelSlew();
             mv.vector.SetDirection(0);
             mv.tag="ongs";
           }

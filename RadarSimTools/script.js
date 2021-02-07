@@ -307,6 +307,10 @@ class MovingVector
     "View: "+JSON.stringify(this.view);
     return ret;
   }
+  CancelSlew()
+  {
+    this.turnDeltaAngle=0;
+  }
   SlewTo(vector)
   {
     //AddStatus("Entering SlewTo(vector)");
