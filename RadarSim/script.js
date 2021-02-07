@@ -257,6 +257,8 @@ function AddPlanes()
     let side=0;
     button.value="Stop Add";
     var id2 = setInterval(addPlanes, 5000);
+    let midx = (xmin+xmax)/2;
+    let midy = (ymin+ymax)/2;
     function addPlanes()
     {
       if (button.value!="Stop Add") 
@@ -273,21 +275,29 @@ function AddPlanes()
       {
         case 0:// left
         movingVector = new MovingVector(.14,0,xmin,randy,plane,vt);
+        var unitv = new Vector(midx-xmin,midy-randy).Unit();
+        movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 1:// top
         movingVector = new MovingVector(0,.14,randx,ymin,plane,vt);
+        var unitv = new Vector(midx-randx,midy-ymin).Unit();
+        movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 2:// right
         movingVector = new MovingVector(-.14,0,xmax,randy,plane,vt);
+        var unitv = new Vector(midx-xmax,midy-randy).Unit();
+        movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 3:// bottom
         movingVector = new MovingVector(0,-.14,randx,ymax,plane,vt);
+        var unitv = new Vector(midx-randx,midy-ymax).Unit();
+        movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
       }
