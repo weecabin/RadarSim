@@ -315,8 +315,8 @@ class MovingVector
   {
     //AddStatus("Entering SlewTo(vector)");
     let angleBetween=this.vector.AngleBetween(vector);
-    let slewRate=Math.pow(.1/this.vector.GetLength(),.33);
-    this.turnDeltaAngle=.2*((angleBetween>0)?slewRate:-slewRate);
+    let slewRate=.1
+    this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
     this.turnTargetDirection=vector.GetDirection();
     //AddStatus("Exiting SlewTo(vector)");
   }
