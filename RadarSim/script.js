@@ -21,6 +21,7 @@ function setup()
   doubleTouch = false;
   dragmv = undefined; // dragging from this moving vector object 
   dragto = undefined;
+  frameInterval=30;
   // Touch Event Handlers 
   canvas.addEventListener('touchstart', onTouchStart);
   canvas.addEventListener('touchend', onTouchEnd);
@@ -329,6 +330,8 @@ function AddPlanes()
 
 function AddPlane()
 {
+  // 150mph = 2.5 mi/min = .0417 mps
+  // 
   AddStatus("In AddPlane");
   let speed=Number(get("speed").value);
   let plane={type:"plane",length:15,width:12,color:"black",
@@ -391,14 +394,14 @@ function Draw(label,x,y,deltaLine)
   for (let pt of deltaLine)
     drawings.push({lbl:label,x0:x+pt[0],y0:y+pt[1],x1:x+pt[2],y1:y+pt[3]});
 }
-
+var frameInterval=30;
 let runAnimate=false;
 function Animate()
 {
 try
   {
   AddStatus("In Animate");
-  var id = setInterval(frame, 30);
+  var id = setInterval(frame, frameInterval);
   function frame() 
   {
     try
@@ -419,7 +422,7 @@ try
       } 
       // look for planes too close
       for (let mv of Objs)mv.drawObject.color="black";
-      for (let i=0;/*get("collision").checked && */ i<Objs.length-1;i++)
+      for (let i=0;i<Objs.length-1;i++)
       {
         for (let j=i+1;j<Objs.length;j++)
         {
@@ -439,6 +442,8 @@ try
         }
       }
       // check for intercepts
+      // set speed while were at it
+      // further away 
       for (let i=0;i<Objs.length;i++)
       {
         let mv = Objs[i];
@@ -451,8 +456,6 @@ try
         let dist1 = Math.hypot(mvx-r1x,mvy-r1y);
         let dist2 = Math.hypot(mvx-r2x,mvy-r2y);
         let direction = mv.vector.GetDirection();
-        //get("debug02").innerHTML=dist1.toFixed(1)+","+dist2.toFixed(1);
-        //get("debug03").innerHTML=(r1y-mvy).toFixed(1)+","+(r2y-mvy).toFixed(1);
         if (mv.tag=="ongs")
         {
           if (dist1<20 || dist2<20)
@@ -472,6 +475,12 @@ try
             mv.vector.SetDirection(0);
             mv.tag="ongs";
           }
+          if (dist1<300)
+            mv.speedMult=1;
+          else if (dist1<1500)
+            mv.speedMult=2;
+          else
+            mv.speedMult=3;
         }
       }
       //AddStatus("Clear, then draw everything");
@@ -486,7 +495,8 @@ try
         drawLine(x0,y0,x1,y1);
         let v = new Vector(x1-x0,y1-y0)
         get("debug01").innerHTML="Assigned Heading = "+
-                    FixHeading(v.GetDirection()+90).toFixed(1); 
+                    FixHeading(v.GetDirection()+90).toFixed(1)+
+                    "  Speed="+dragmv.speedMult*150; 
       }
       get("debug02").innerHTML=Objs.length+" Objects";
       // draw all the planes

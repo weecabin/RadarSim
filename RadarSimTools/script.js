@@ -295,6 +295,7 @@ class MovingVector
     this.turnTargetDirection=this.turnDeltaAngle=0;
     this.vt=view;
     this.tag=tag;
+    this.speedMult=1;
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
   }
@@ -315,7 +316,7 @@ class MovingVector
   {
     //AddStatus("Entering SlewTo(vector)");
     let angleBetween=this.vector.AngleBetween(vector);
-    let slewRate=.1
+    let slewRate=.2
     this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
     this.turnTargetDirection=vector.GetDirection();
     //AddStatus("Exiting SlewTo(vector)");
@@ -438,8 +439,8 @@ class MovingVector
         this.vector=this.vector.ProjectOn(nextVector);
       }
     }
-    this.xpos+=this.vector.x;
-    this.ypos+=this.vector.y;
+    this.xpos+=this.vector.x*this.speedMult;
+    this.ypos+=this.vector.y*this.speedMult;
     //AddStatus("Exiting Move");
     }
     catch(err)
