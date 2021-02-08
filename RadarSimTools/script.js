@@ -326,6 +326,7 @@ class MovingVector
     //AddStatus("Entering DrawPath");
     let firstMove=true
     let zoomMult=1+.98*(this.vt.scale-1)
+    ctx.beginPath();
     for (let da of drawArray)
     {
       let x;
@@ -345,21 +346,18 @@ class MovingVector
         x = this.xpos+da.dx/zoomMult;
         y = this.ypos+da.dy/zoomMult;
       }
-      switch (da.move)
+      switch (da.action)
       {
       case "move":
-      if (firstMove)
-        firstMove=false;
-      else
-        ctx.stroke();
-      ctx.beginPath();
       ctx.moveTo(vt.toScreenX(x),vt.toScreenY(y));
       break;
+
       case "line":
       ctx.lineTo(vt.toScreenX(x),vt.toScreenY(y));
       break;
       }
     }
+    ctx.strokeStyle=this.drawObject.color;
     ctx.stroke();
     //AddStatus("Exiting DrawPath");
   }
@@ -388,14 +386,19 @@ class MovingVector
       case "plane":
       let rotate = this.vector.GetDirection();
       let halflen=drw.length/2;
+      let quarterlen=halflen/2;
       let halfwid=drw.width/2;
+      let quarterwid=halfwid/2;
       var ma = 
       [
-      {move:"move",dx:-halflen,dy:0},
-      {move:"line",dx:halflen, dy:0},
-      {move:"line",dx:0,            dy:halfwid},
-      {move:"move",dx:0,            dy:-halfwid},
-      {move:"line",dx:halflen,  dy:0},
+      {action:"move",dx:-quarterlen, dy:0},
+      {action:"line",dx:halflen,     dy:0},
+      {action:"move",dx:-quarterlen, dy:halfwid},
+      {action:"line",dx:quarterlen,  dy:0},
+      {action:"line",dx:-quarterlen, dy:-halfwid},
+      {action:"move",dx:-halflen,    dy:-quarterwid},
+      {action:"line",dx:-quarterlen, dy:0},
+      {action:"line",dx:-halflen,    dy:quarterwid},
       ];
       this.DrawPath(ctx,ma,-rotate);
       break;

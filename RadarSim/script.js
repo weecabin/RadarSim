@@ -8,6 +8,8 @@ const vt = new ViewTools(canvas,context);
 const runway1={x:canvas.width/2,y:canvas.height/2-10};
 const runway2={x:canvas.width/2,y:canvas.height/2+10};
 const runwayRange=150;
+var Objs=[];
+var tcas=[];
 
 function setup()
 {
@@ -248,17 +250,15 @@ function get(id)
   return document.getElementById(id);
 }
 
-function ClearSketch()
+function ClearSketch(clearAll=false)
 {
   for (let i=drawings.length-1;i>=0;i--)
   {
-    if (drawings[i].lbl=="line")
+    if (drawings[i].lbl=="line" || clearAll)
     drawings.pop();
   }
   redrawCanvas();
 }
-
-var Objs=[];
 
 function AddPlanes()
 {
@@ -271,6 +271,7 @@ function AddPlanes()
     let xmin = vt.toTrueX(0);
     let xmax = vt.toTrueX(canvas.width);
     let side=0;
+    let speed=Number(get("speed").value);
     button.value="Stop Add";
     var id2 = setInterval(addPlanes, 5000);
     let midx = (xmin+xmax)/2;
@@ -284,34 +285,34 @@ function AddPlanes()
       }
       let randy = ymin+Math.random()*(ymax-ymin);
       let randx = xmin+Math.random()*(xmax-xmin);
-      let plane={type:"plane",length:15,width:8,color:"black",
+      let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
       let movingVector;
       switch ((++side)%4)
       {
         case 0:// left
-        movingVector = new MovingVector(.14,0,xmin,randy,plane,vt);
+        movingVector = new MovingVector(.1*speed,0,xmin,randy,plane,vt);
         var unitv = new Vector(midx-xmin,midy-randy).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 1:// top
-        movingVector = new MovingVector(0,.14,randx,ymin,plane,vt);
+        movingVector = new MovingVector(.1*speed,0,randx,ymin,plane,vt);
         var unitv = new Vector(midx-randx,midy-ymin).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 2:// right
-        movingVector = new MovingVector(-.14,0,xmax,randy,plane,vt);
+        movingVector = new MovingVector(.1*speed,0,xmax,randy,plane,vt);
         var unitv = new Vector(midx-xmax,midy-randy).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 3:// bottom
-        movingVector = new MovingVector(0,-.14,randx,ymax,plane,vt);
+        movingVector = new MovingVector(.1*speed,0,randx,ymax,plane,vt);
         var unitv = new Vector(midx-randx,midy-ymax).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
@@ -329,10 +330,11 @@ function AddPlanes()
 function AddPlane()
 {
   AddStatus("In AddPlane");
-  let speed=1;
-  let plane={type:"plane",length:15,width:8,color:"black",
+  let speed=Number(get("speed").value);
+  let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
-  let movingVector = new MovingVector(.1,.1,0,0,plane,vt);
+  let movingVector = new MovingVector(.1*speed,0,0,0,plane,vt);
+  movingVector.vector.SetDirection(45);
   //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
 }
@@ -356,6 +358,8 @@ function StartAnimation()
   }
   else // not running, so start
   {
+    ClearSketch(true)
+    Objs=[];
     runAnimate=true;
     get("animate").value="Stop Animation";
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
@@ -413,22 +417,24 @@ try
       {
         mv.Move();
       } 
-      //AddStatus("Look for collisions with other objects");
-      for (let i=0;get("collision").checked &&  i<Objs.length-1;i++)
+      // look for planes too close
+      for (let mv of Objs)mv.drawObject.color="black";
+      for (let i=0;/*get("collision").checked && */ i<Objs.length-1;i++)
       {
         for (let j=i+1;j<Objs.length;j++)
         {
-          if (DistBetween(Objs[i],Objs[j])<10)
+          let dist = DistBetween(Objs[i],Objs[j]);
+          if (dist<80)
           {
-            let v1=Objs[i].vector;
-            let v2=Objs[j].vector;
-            let movingAway=Objs[i].MovingAway(Objs[j]);
-            if (!movingAway)
-            {
-              CollisionBounce(Objs[i],Objs[j])
-              Objs[i].Move();
-              Objs[j].Move();
-            }
+            if (Objs[i].drawObject.color!="red")
+              Objs[i].drawObject.color="coral";
+            if (Objs[j].drawObject.color!="red")
+              Objs[j].drawObject.color="coral";
+          }
+          if (dist<40)
+          {
+            Objs[i].drawObject.color="red";
+            Objs[j].drawObject.color="red";
           }
         }
       }
