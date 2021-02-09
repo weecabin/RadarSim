@@ -292,28 +292,28 @@ function AddPlanes()
       switch ((++side)%4)
       {
         case 0:// left
-        movingVector = new MovingVector(.1*speed,0,xmin,randy,plane,vt);
+        movingVector = new MovingVector(.03*speed,0,xmin,randy,plane,vt);
         var unitv = new Vector(midx-xmin,midy-randy).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 1:// top
-        movingVector = new MovingVector(.1*speed,0,randx,ymin,plane,vt);
+        movingVector = new MovingVector(.03*speed,0,randx,ymin,plane,vt);
         var unitv = new Vector(midx-randx,midy-ymin).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 2:// right
-        movingVector = new MovingVector(.1*speed,0,xmax,randy,plane,vt);
+        movingVector = new MovingVector(.03*speed,0,xmax,randy,plane,vt);
         var unitv = new Vector(midx-xmax,midy-randy).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 3:// bottom
-        movingVector = new MovingVector(.1*speed,0,randx,ymax,plane,vt);
+        movingVector = new MovingVector(.03*speed,0,randx,ymax,plane,vt);
         var unitv = new Vector(midx-randx,midy-ymax).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
@@ -336,7 +336,7 @@ function AddPlane()
   let speed=Number(get("speed").value);
   let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
-  let movingVector = new MovingVector(.1*speed,0,0,0,plane,vt);
+  let movingVector = new MovingVector(.03*speed,0,0,0,plane,vt);
   movingVector.vector.SetDirection(45);
   //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
@@ -463,6 +463,8 @@ try
             //AddStatus("Spliced");
             Objs.splice(i,1);
           }
+          if (dist1<100)
+            mv.speedMult=1;
         }
         else
         {
@@ -476,7 +478,7 @@ try
             mv.tag="ongs";
           }
           if (dist1<300)
-            mv.speedMult=1;
+            mv.speedMult=1.3;
           else if (dist1<1500)
             mv.speedMult=2;
           else
