@@ -55,6 +55,7 @@ Return Value
 *************************************************************/ 
 function MvSpeed(movingVector,frameRate,pixelsPerMile)
 {
+  //AddStatus("in MvSpeed");
   // pixels/frame
   let vlenPerFrame = movingVector.vector.GetLength();
   // miles/frame = pixels/frame / pixels/mile
@@ -62,7 +63,10 @@ function MvSpeed(movingVector,frameRate,pixelsPerMile)
   // miles/s = miles/frame / s/frame
   let milesPerS = milesPerFrame/frameRate;
   let ret = milesPerS*3600;
-  return ret*movingVector.speedMult;
+  //AddStatus("ret = "+ret);
+  ret *= movingVector.speedMult;
+  //AddStatus("speedMult,ret = "+movingVector.speedMult+","+ret);
+  return ret;
 }
 /*************************************************************
 **************************************************************

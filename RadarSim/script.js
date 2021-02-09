@@ -278,7 +278,7 @@ function AddPlanes()
     let xmax = vt.toTrueX(canvas.width);
     let side=0;
     let speed=Number(get("speed").value);
-    let vlen=VectorLength(150,.03,10);
+    let vlen=VectorLength(150,.03,10)*speed;
     button.value="Stop Add";
     var id2 = setInterval(addPlanes, 5000);
     let midx = (xmin+xmax)/2;
@@ -343,11 +343,11 @@ function AddPlane()
   let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
   // VectorLength(targetMPH,frameInterval,pixelsPerMile)
-  let vlen=VectorLength(150,.03,10);
+  let vlen=VectorLength(150,.03,10)*Number(get("speed").value);
   AddStatus("vector length="+vlen);
   let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
   movingVector.vector.SetDirection(45);
-  //AddStatus(JSON.stringify(movingVector));
+  AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
 }
 
@@ -512,7 +512,7 @@ try
         get("debug01").innerHTML="Assigned Heading = "+
                     heading+
                     // MvSpeed(movingVector,frameRate,pixelsPerMile)
-                    "  Speed="+(MvSpeed(dragmv,.03,10)*speed).toFixed(1)+
+                    "  Speed="+(MvSpeed(dragmv,.03,10)).toFixed(1)+
                     "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
       }
       get("debug02").innerHTML=Objs.length+" Objects";
