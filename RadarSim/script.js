@@ -73,7 +73,7 @@ function redrawCanvas(heightPercent = 80, widthPercent = 100)
     }
   }
 }
-//redrawCanvas();
+redrawCanvas();
 
 // if the window changes size, redraw the canvas
 window.addEventListener("resize", (event) => 
