@@ -488,6 +488,7 @@ try
       // draw the drag vector if currently dragging
       if (dragmv!=undefined)
       {
+        let speed = Number(get("speed").value)
         let x0=vt.toScreenX(dragmv.xpos);
         let y0=vt.toScreenY(dragmv.ypos);
         let x1=dragto[0];
@@ -496,7 +497,7 @@ try
         let v = new Vector(x1-x0,y1-y0)
         get("debug01").innerHTML="Assigned Heading = "+
                     FixHeading(v.GetDirection()+90).toFixed(1)+
-                    "  Speed="+dragmv.speedMult*150; 
+                    "  Speed="+dragmv.speedMult*150*speed; 
       }
       get("debug02").innerHTML=Objs.length+" Objects";
       // draw all the planes
