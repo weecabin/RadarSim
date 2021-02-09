@@ -70,7 +70,7 @@ function redrawCanvas(heightPercent = 80, widthPercent = 100)
     }
   }
 }
-redrawCanvas();
+//redrawCanvas();
 
 // if the window changes size, redraw the canvas
 window.addEventListener("resize", (event) => 
@@ -221,7 +221,7 @@ function onTouchMove(event)
 }
 
 function onTouchEnd(event) 
-  {
+{
   singleTouch = false;
   doubleTouch = false;
 
@@ -434,7 +434,7 @@ try
             if (Objs[j].drawObject.color!="red")
               Objs[j].drawObject.color="coral";
           }
-          if (dist<40)
+          if (dist<30)
           {
             Objs[i].drawObject.color="red";
             Objs[j].drawObject.color="red";
@@ -463,7 +463,7 @@ try
             //AddStatus("Spliced");
             Objs.splice(i,1);
           }
-          if (dist1<100)
+          if (dist1<120)
             mv.speedMult=1;
         }
         else
@@ -499,7 +499,8 @@ try
         let v = new Vector(x1-x0,y1-y0)
         get("debug01").innerHTML="Assigned Heading = "+
                     FixHeading(v.GetDirection()+90).toFixed(1)+
-                    "  Speed="+dragmv.speedMult*150*speed; 
+                    "  Speed="+dragmv.speedMult*150*speed+
+                    "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
       }
       get("debug02").innerHTML=Objs.length+" Objects";
       // draw all the planes
