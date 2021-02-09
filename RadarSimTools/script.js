@@ -326,7 +326,7 @@ class MovingVector
   {
     //AddStatus("Entering DrawPath");
     let firstMove=true
-    let zoomMult=1+.98*(this.vt.scale-1)
+    let zoomMult=1+.8*(this.vt.scale-1)
     ctx.beginPath();
     for (let da of drawArray)
     {
@@ -360,7 +360,6 @@ class MovingVector
     }
     ctx.strokeStyle=this.drawObject.color;
     ctx.stroke();
-    //AddStatus("Exiting DrawPath");
   }
 
   Draw(ctx)
@@ -402,6 +401,15 @@ class MovingVector
       {action:"line",dx:-halflen,    dy:quarterwid},
       ];
       this.DrawPath(ctx,ma,-rotate);
+      if (vt.scale>.75)
+      {
+        let speed = Math.round((this.vector.GetLength()/.03)*this.speedMult*150);
+        let heading = FixHeading(Math.round(this.vector.GetDirection()+90));
+        ctx.fillStyle="black";
+        ctx.textAlign = "center";
+        ctx.fillText(speed+" "+heading,vt.toScreenX(this.xpos), 
+                     vt.toScreenY(this.ypos-10/vt.scale));
+      }
       break;
     }
     //AddStatus("Exiting Draw");

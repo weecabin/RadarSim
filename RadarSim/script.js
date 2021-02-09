@@ -27,6 +27,9 @@ function setup()
   canvas.addEventListener('touchend', onTouchEnd);
   canvas.addEventListener('touchcancel', onTouchEnd);
   canvas.addEventListener('touchmove', onTouchMove);
+  context.font = "15px Georgia";
+  context.fillStyle="black";
+  context.textAlign = "center";
   PlaneButtonsOff(true);
   AddStatus("Exiting setup()");
   }
@@ -229,6 +232,8 @@ function onTouchEnd(event)
   //AddStatus(dragmv.Snapshot());
   let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
     vt.toTrueY(dragto[1]) - dragmv.ypos);
+  let direction = Math.round(dragVector.GetDirection()/10)*10;
+  dragVector.SetDirection(direction);
   // allow the user to cancel the vector by moving back to the origin
   if (dragVector.GetLength() < (25 / vt.scale)) 
   {
@@ -458,7 +463,7 @@ try
         let direction = mv.vector.GetDirection();
         if (mv.tag=="ongs")
         {
-          if (dist1<20 || dist2<20)
+          if (dist1<10 || dist2<10)
           {
             //AddStatus("Spliced");
             Objs.splice(i,1);
@@ -469,7 +474,7 @@ try
         else
         {
           if (((dist1<300) || (dist2<300)) && 
-              ((direction<30) || (direction>330)) &&
+              ((direction<31) || (direction>329)) &&
               ((Math.abs(mvy-r1y)<2) || (Math.abs(mvy-r2y)<2))
              )
           {
@@ -477,9 +482,11 @@ try
             mv.vector.SetDirection(0);
             mv.tag="ongs";
           }
-          if (dist1<300)
-            mv.speedMult=1.3;
-          else if (dist1<1500)
+          if (dist1<200)
+            mv.speedMult=1.333;
+          else if (dist1<400)
+            mv.speedMult=1.6;
+          else if (dist1<1000)
             mv.speedMult=2;
           else
             mv.speedMult=3;
@@ -496,9 +503,10 @@ try
         let x1=dragto[0];
         let y1=dragto[1];
         drawLine(x0,y0,x1,y1);
-        let v = new Vector(x1-x0,y1-y0)
+        let v = new Vector(x1-x0,y1-y0);
+        let heading = FixHeading(Math.round((v.GetDirection()+90)/10)*10);
         get("debug01").innerHTML="Assigned Heading = "+
-                    FixHeading(v.GetDirection()+90).toFixed(1)+
+                    heading+
                     "  Speed="+dragmv.speedMult*150*speed+
                     "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
       }
