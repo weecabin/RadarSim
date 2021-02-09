@@ -41,8 +41,50 @@ class ViewTools
 }
         
 
-        
 
+/*************************************************************
+**************************************************************
+                         MvSpeed(movingVector,framerate)
+
+Description
+
+Parameters
+
+Return Value
+
+*************************************************************/ 
+function MvSpeed(movingVector,frameRate,pixelsPerMile)
+{
+  // pixels/frame
+  let vlenPerFrame = movingVector.vector.GetLength();
+  // miles/frame = pixels/frame / pixels/mile
+  let milesPerFrame = vlenPerFrame/pixelsPerMile;
+  // miles/s = miles/frame / s/frame
+  let milesPerS = milesPerFrame/frameRate;
+  let ret = milesPerS*3600;
+  return ret*movingVector.speedMult;
+}
+/*************************************************************
+**************************************************************
+                         VectorLength
+
+Description
+
+Parameters
+
+Return Value
+
+*************************************************************/ 
+function VectorLength(targetMPH,frameInterval,pixelsPerMile)
+{
+  // mi/hr / s/hr = mi/s
+  let targetMPS = targetMPH/3600;
+  // mi/s * s/frame = mi/frame
+  let targetMPF = targetMPS * frameInterval;
+  // mi/frame * px/mi = px/frame
+  let ret = targetMPF * pixelsPerMile;
+  return ret;
+}
 
 /*************************************************************
 **************************************************************
@@ -326,7 +368,7 @@ class MovingVector
   {
     //AddStatus("Entering DrawPath");
     let firstMove=true
-    let zoomMult=1+.8*(this.vt.scale-1)
+    let zoomMult=1+.95*(this.vt.scale-1)
     ctx.beginPath();
     for (let da of drawArray)
     {
@@ -403,7 +445,8 @@ class MovingVector
       this.DrawPath(ctx,ma,-rotate);
       if (vt.scale>.75)
       {
-        let speed = Math.round((this.vector.GetLength()/.03)*this.speedMult*150);
+        // MvSpeed(movingVector,frameRate,pixelsPerMile)
+        let speed = (MvSpeed(this,.03,10)).toFixed(1);
         let heading = FixHeading(Math.round(this.vector.GetDirection()+90));
         ctx.fillStyle="black";
         ctx.textAlign = "center";

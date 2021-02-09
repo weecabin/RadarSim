@@ -278,6 +278,7 @@ function AddPlanes()
     let xmax = vt.toTrueX(canvas.width);
     let side=0;
     let speed=Number(get("speed").value);
+    let vlen=VectorLength(150,.03,10);
     button.value="Stop Add";
     var id2 = setInterval(addPlanes, 5000);
     let midx = (xmin+xmax)/2;
@@ -297,28 +298,28 @@ function AddPlanes()
       switch ((++side)%4)
       {
         case 0:// left
-        movingVector = new MovingVector(.03*speed,0,xmin,randy,plane,vt);
+        movingVector = new MovingVector(vlen,0,xmin,randy,plane,vt);
         var unitv = new Vector(midx-xmin,midy-randy).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 1:// top
-        movingVector = new MovingVector(.03*speed,0,randx,ymin,plane,vt);
+        movingVector = new MovingVector(vlen,0,randx,ymin,plane,vt);
         var unitv = new Vector(midx-randx,midy-ymin).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 2:// right
-        movingVector = new MovingVector(.03*speed,0,xmax,randy,plane,vt);
+        movingVector = new MovingVector(vlen,0,xmax,randy,plane,vt);
         var unitv = new Vector(midx-xmax,midy-randy).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
         break;
 
         case 3:// bottom
-        movingVector = new MovingVector(.03*speed,0,randx,ymax,plane,vt);
+        movingVector = new MovingVector(vlen,0,randx,ymax,plane,vt);
         var unitv = new Vector(midx-randx,midy-ymax).Unit();
         movingVector.vector.SetDirection(unitv.GetDirection());
         Objs.push(movingVector);
@@ -338,10 +339,13 @@ function AddPlane()
   // 150mph = 2.5 mi/min = .0417 mps
   // 
   AddStatus("In AddPlane");
-  let speed=Number(get("speed").value);
+  //let speed=Number(get("speed").value);
   let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
-  let movingVector = new MovingVector(.03*speed,0,0,0,plane,vt);
+  // VectorLength(targetMPH,frameInterval,pixelsPerMile)
+  let vlen=VectorLength(150,.03,10);
+  AddStatus("vector length="+vlen);
+  let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
   movingVector.vector.SetDirection(45);
   //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
@@ -507,7 +511,8 @@ try
         let heading = FixHeading(Math.round((v.GetDirection()+90)/10)*10);
         get("debug01").innerHTML="Assigned Heading = "+
                     heading+
-                    "  Speed="+dragmv.speedMult*150*speed+
+                    // MvSpeed(movingVector,frameRate,pixelsPerMile)
+                    "  Speed="+(MvSpeed(dragmv,.03,10)*speed).toFixed(1)+
                     "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
       }
       get("debug02").innerHTML=Objs.length+" Objects";
