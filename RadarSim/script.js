@@ -45,7 +45,7 @@ document.oncontextmenu = function() {
 }
 
 
-function redrawCanvas(heightPercent = 80, widthPercent = 100) 
+function redrawCanvas(heightPercent = 60, widthPercent = 100) 
 {
   // set the canvas to the size of the window
   canvas.width = document.body.clientWidth * widthPercent / 100;
@@ -130,6 +130,12 @@ function onTouchMove(event)
   const scaledY = vt.toTrueY(touch0Y);
   const prevScaledX = vt.toTrueX(prevTouch0X);
   const prevScaledY = vt.toTrueY(prevTouch0Y);
+  if (event.touches.length >= 2) 
+  {
+    singleTouch = false;
+    doubleTouch = true;
+    dragmv=undefined;
+  }
 
   if (singleTouch) 
   {
@@ -172,6 +178,7 @@ function onTouchMove(event)
 
   if (doubleTouch) 
   {
+    AddStatus("double");
     // get second touch coordinates
     const touch1X = event.touches[1].pageX;
     const touch1Y = event.touches[1].pageY;
