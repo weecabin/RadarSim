@@ -178,7 +178,7 @@ function onTouchMove(event)
 
   if (doubleTouch) 
   {
-    AddStatus("double");
+    //AddStatus("double");
     // get second touch coordinates
     const touch1X = event.touches[1].pageX;
     const touch1Y = event.touches[1].pageY;
@@ -345,16 +345,16 @@ function AddPlane()
 {
   // 150mph = 2.5 mi/min = .0417 mps
   // 
-  AddStatus("In AddPlane");
+  //AddStatus("In AddPlane");
   //let speed=Number(get("speed").value);
   let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
   // VectorLength(targetMPH,frameInterval,pixelsPerMile)
   let vlen=VectorLength(150,.03,10)*Number(get("speed").value);
-  AddStatus("vector length="+vlen);
+  //AddStatus("vector length="+vlen);
   let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
   movingVector.vector.SetDirection(45);
-  AddStatus(JSON.stringify(movingVector));
+  //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
 }
 
