@@ -45,7 +45,7 @@ document.oncontextmenu = function() {
 }
 
 
-function redrawCanvas(heightPercent = 60, widthPercent = 100) 
+function redrawCanvas(heightPercent = 80, widthPercent = 100) 
 {
   // set the canvas to the size of the window
   canvas.width = document.body.clientWidth * widthPercent / 100;
