@@ -4,7 +4,7 @@ const context = canvas.getContext("2d");
 
 // list of all strokes drawn
 const drawings = [];
-const vt = new ViewTools(canvas,context);
+const vt = new ViewTools(canvas,context,30);
 const runway1={x:canvas.width/2,y:canvas.height/2-10};
 const runway2={x:canvas.width/2,y:canvas.height/2+10};
 const runwayRange=150;
@@ -21,7 +21,6 @@ function setup()
   doubleTouch = false;
   dragmv = undefined; // dragging from this moving vector object 
   dragto = undefined;
-  frameInterval=30;
   // Touch Event Handlers 
   canvas.addEventListener('touchstart', onTouchStart);
   canvas.addEventListener('touchend', onTouchEnd);
@@ -44,8 +43,16 @@ document.oncontextmenu = function() {
   return false;
 }
 
+function SetAltitude(obj)
+{
+  if (dragmv != undefined)
+  {
+    dragmv.SetAltitude(Number(obj.innerHTML));
+    dragmv.drawObject.color="green";
+  }
+}
 
-function redrawCanvas(heightPercent = 80, widthPercent = 100) 
+function redrawCanvas(heightPercent = 80, widthPercent = 90) 
 {
   // set the canvas to the size of the window
   canvas.width = document.body.clientWidth * widthPercent / 100;
@@ -153,7 +160,9 @@ function onTouchMove(event)
     } 
     else  
     {
-      if (dragmv == undefined) 
+      if (dragmv == undefined)
+        dragmv=new MovingVector(1, 1, scaledX, scaledY);
+      if (dragmv.tag == "none") 
       {
         //AddStatus("Find the closest plane");
         let tempmv = new MovingVector(1, 1, scaledX, scaledY);
@@ -171,6 +180,8 @@ function onTouchMove(event)
           }
         }
         dragmv = closestmv;
+        dragmv.drawObject.color="green";
+        dragmv.tag="drag";
       }
       dragto = [touch0X, touch0Y]
     }
@@ -235,7 +246,7 @@ function onTouchEnd(event)
   singleTouch = false;
   doubleTouch = false;
 
-  if (Objs.length == 0 || dragmv == undefined) return;
+  if (Objs.length == 0 || dragmv.tag == "none") return;
   //AddStatus(dragmv.Snapshot());
   let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
     vt.toTrueY(dragto[1]) - dragmv.ypos);
@@ -244,14 +255,14 @@ function onTouchEnd(event)
   // allow the user to cancel the vector by moving back to the origin
   if (dragVector.GetLength() < (25 / vt.scale)) 
   {
-    dragmv = undefined;
+    dragmv.tag = "none";
     return;
   }
   if (get("radiusturn").checked)
     dragmv.SlewTo(dragVector);
   else
     dragmv.vector.SetDirection(dragVector.GetDirection());
-  dragmv = undefined;
+  dragmv.tag="none";
 }
 function Settings()
 {
@@ -410,14 +421,13 @@ function Draw(label,x,y,deltaLine)
   for (let pt of deltaLine)
     drawings.push({lbl:label,x0:x+pt[0],y0:y+pt[1],x1:x+pt[2],y1:y+pt[3]});
 }
-var frameInterval=30;
 let runAnimate=false;
 function Animate()
 {
 try
   {
   AddStatus("In Animate");
-  var id = setInterval(frame, frameInterval);
+  var id = setInterval(frame, vt.fi);
   function frame() 
   {
     try
@@ -437,23 +447,28 @@ try
         mv.Move();
       } 
       // look for planes too close
-      for (let mv of Objs)mv.drawObject.color="black";
+      //for (let mv of Objs)mv.drawObject.color="black";
       for (let i=0;i<Objs.length-1;i++)
       {
         for (let j=i+1;j<Objs.length;j++)
         {
-          let dist = DistBetween(Objs[i],Objs[j]);
-          if (dist<80)
+          Objs[i].drawObject.color="black";
+          Objs[j].drawObject.color="black";
+          if (Math.abs(Objs[i].alt-Objs[j].alt)<1000)
           {
-            if (Objs[i].drawObject.color!="red")
-              Objs[i].drawObject.color="coral";
-            if (Objs[j].drawObject.color!="red")
-              Objs[j].drawObject.color="coral";
-          }
-          if (dist<30)
-          {
-            Objs[i].drawObject.color="red";
-            Objs[j].drawObject.color="red";
+            let dist = DistBetween(Objs[i],Objs[j]);
+            if (dist<80)
+            {
+              if (Objs[i].drawObject.color!="red")
+                Objs[i].drawObject.color="coral";
+              if (Objs[j].drawObject.color!="red")
+                Objs[j].drawObject.color="coral";
+            }
+            if (dist<30)
+            {
+              Objs[i].drawObject.color="red";
+              Objs[j].drawObject.color="red";
+            }
           }
         }
       }
@@ -506,7 +521,7 @@ try
       //AddStatus("Clear, then draw everything");
       redrawCanvas();
       // draw the drag vector if currently dragging
-      if (dragmv!=undefined)
+      if (dragmv!=undefined && dragmv.tag=="drag")
       {
         let speed = Number(get("speed").value)
         let x0=vt.toScreenX(dragmv.xpos);

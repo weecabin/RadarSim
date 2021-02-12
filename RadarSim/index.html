@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Infinite Flight Radar Training 003</title>
 
     <style>
@@ -33,10 +33,21 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 
-<body onload="setup();">
-  <!--div id="canvasdiv" width="400px" height="400px"-->
-    <canvas id="canvas">Your browser does not support HTML5 canvas</canvas>
-  <!--/div-->
+<body id="app" onload="setup();" content="user-scalable=no">
+  <canvas id="canvas">Your browser does not support HTML5 canvas</canvas>
+  <div class="commands">
+    <p onclick="SetAltitude(this)">20000</p>
+    <p onclick="SetAltitude(this)">15000</p>
+    <p onclick="SetAltitude(this)">11000</p>
+    <p onclick="SetAltitude(this)">9000</p>
+    <p onclick="SetAltitude(this)">8000</p>
+    <p onclick="SetAltitude(this)">7000</p>
+    <p onclick="SetAltitude(this)">6000</p>
+    <p onclick="SetAltitude(this)">5000</p>
+    <p onclick="SetAltitude(this)">4000</p>
+    <p onclick="SetAltitude(this)">3000</p>
+
+  </div>
   <div class="divider"/>
   <input id="addplane" type="button" value="Add Plane" onclick="AddPlane()">
   <input id="addplanes" type="button" value="Add Planes" onclick="AddPlanes()">

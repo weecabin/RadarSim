@@ -1,7 +1,45 @@
+class StateMachine
+{
+  constructor(name)
+  {
+    this.name = name;
+    this.states=[];
+    this.transitions=[];
+  }
+  AddState(name,callback)
+  {
+    this.states.push({name:name,cb:callback});
+    if (this.states.length==1)this.currentState=name;
+    //AddStatus("states:"+JSON.stringify(this.states));
+  }
+  AddTransition(eventName,assert,fromStateName,toStateName)
+  {
+    this.transitions.push(
+      {event:eventName,assert:assert,
+       fromState:fromStateName,toState:toStateName});
+  }
+  Event(name,assert)
+  {
+    //AddStatus(JSON.stringify(this));
+    let filtered=this.transitions.filter(x=>
+                      x.event==name && x.assert==assert &&
+                      x.fromState==this.currentState);
+    //AddStatus("filtered="+JSON.stringify(filtered));
+    if (filtered.length>0)
+    {
+      this.currentState=filtered[0].toState;
+      let state = this.states.filter(x=>x.name==this.currentState);
+      //AddStatus("newState="+JSON.stringify(state));
+      if (state.length>0)
+        state[0].cb();
+    }
+  }
+}
+
 
 class ViewTools
 {
-  constructor(canvas,context)
+  constructor(canvas,context,frameInterval=30)
   {
     this.canvas=canvas;
     this.ctx=context;
@@ -12,6 +50,9 @@ class ViewTools
 
     // zoom amount
     this.scale = 1;
+
+    // save the frame interval
+    this.fi=frameInterval;
   }
   // convert coordinates
   toScreenX(xTrue)
@@ -163,7 +204,6 @@ Parameters
 Return Value
 
 *************************************************************/ 
-
 class Vector
 {
   constructor(x,y)
@@ -342,6 +382,9 @@ class MovingVector
     this.vt=view;
     this.tag=tag;
     this.speedMult=1;
+    this.breadCrumbs=[];
+    this.alt=30000;
+    this.targetAlt=30000;
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
   }
@@ -354,6 +397,10 @@ class MovingVector
     "View: "+JSON.stringify(this.view);
     return ret;
   }
+  SetAltitude(alt)
+  {
+    this.targetAlt=alt;
+  }
   CancelSlew()
   {
     this.turnDeltaAngle=0;
@@ -362,7 +409,7 @@ class MovingVector
   {
     //AddStatus("Entering SlewTo(vector)");
     let angleBetween=this.vector.AngleBetween(vector);
-    let slewRate=.2
+    let slewRate=this.vt.fi/333.3;
     this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
     this.turnTargetDirection=vector.GetDirection();
     //AddStatus("Exiting SlewTo(vector)");
@@ -450,11 +497,12 @@ class MovingVector
       if (vt.scale>.75)
       {
         // MvSpeed(movingVector,frameRate,pixelsPerMile)
-        let speed = (MvSpeed(this,.03,10)).toFixed(1);
+        let speed = (MvSpeed(this,.03,10)).toFixed(0);
         let heading = FixHeading(Math.round(this.vector.GetDirection()+90));
         ctx.fillStyle="black";
         ctx.textAlign = "center";
-        ctx.fillText(speed+" "+heading,vt.toScreenX(this.xpos), 
+        ctx.fillText(speed+" "+heading+
+                     " FL"+Math.round(this.alt/100),vt.toScreenX(this.xpos), 
                      vt.toScreenY(this.ypos-10/vt.scale));
       }
       break;
@@ -476,7 +524,14 @@ class MovingVector
       this.vector.y-=this.drawObject.gravity; 
     }
       
-    //AddStatus("Entering Move");
+    if (this.alt != this.targetAlt)
+    {
+      let deltaAlt = 1;
+      if (this.targetAlt<this.alt)deltaAlt*=-1;
+      this.alt+=deltaAlt;
+      if (Math.abs(this.alt-this.targetAlt)<=deltaAlt)
+        this.alt=this.targetAlt;
+    }
     if (this.turnDeltaAngle!=0)
     {
       //AddStatus("this.turnDeltaAngle!=0");
