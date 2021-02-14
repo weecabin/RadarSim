@@ -48,7 +48,6 @@ function SetAltitude(obj)
   if (dragmv != undefined)
   {
     dragmv.SetAltitude(Number(obj.innerHTML));
-    dragmv.drawObject.color="green";
   }
 }
 
@@ -118,7 +117,6 @@ function onTouchStart(event)
     singleTouch = false;
     doubleTouch = true;
   }
-
   // store the last touches
   prevTouches[0] = event.touches[0];
   prevTouches[1] = event.touches[1];
@@ -141,7 +139,6 @@ function onTouchMove(event)
   {
     singleTouch = false;
     doubleTouch = true;
-    dragmv=undefined;
   }
 
   if (singleTouch) 
@@ -162,6 +159,8 @@ function onTouchMove(event)
     {
       if (dragmv == undefined)
         dragmv=new MovingVector(1, 1, scaledX, scaledY);
+      else
+        dragmv.ClearColor("green");
       if (dragmv.tag == "none") 
       {
         //AddStatus("Find the closest plane");
@@ -173,22 +172,24 @@ function onTouchMove(event)
         {
           //AddStatus("checking distance");
           let testdist = DistBetween(mv, tempmv);
-          if (testdist < dist) {
+          if (testdist < dist) 
+          {
             //AddStatus("found closest="+mv.xpos+","+mv.ypos);
             dist = testdist;
             closestmv = mv;
           }
         }
         dragmv = closestmv;
-        dragmv.drawObject.color="green";
         dragmv.tag="drag";
       }
+      dragmv.SetColor("green");
       dragto = [touch0X, touch0Y]
     }
   }
 
   if (doubleTouch) 
   {
+    if (dragmv!=undefined)dragmv.tag="none";
     //AddStatus("double");
     // get second touch coordinates
     const touch1X = event.touches[1].pageX;
@@ -246,7 +247,8 @@ function onTouchEnd(event)
   singleTouch = false;
   doubleTouch = false;
 
-  if (Objs.length == 0 || dragmv.tag == "none") return;
+  if (Objs.length == 0) return;
+  if (dragmv!=undefined && dragmv.tag!="drag")return;
   //AddStatus(dragmv.Snapshot());
   let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
     vt.toTrueY(dragto[1]) - dragmv.ypos);
@@ -282,6 +284,8 @@ function ClearSketch(clearAll=false)
     drawings.pop();
   }
   redrawCanvas();
+  for (let mv of Objs)
+    AddStatus(JSON.stringify(mv.colors));
 }
 
 function AddPlanes()
@@ -448,26 +452,28 @@ try
       } 
       // look for planes too close
       //for (let mv of Objs)mv.drawObject.color="black";
+      for (let mv of Objs)
+      {
+        mv.ClearColor("red");
+        mv.ClearColor("orange");
+      }
       for (let i=0;i<Objs.length-1;i++)
       {
+
         for (let j=i+1;j<Objs.length;j++)
         {
-          Objs[i].drawObject.color="black";
-          Objs[j].drawObject.color="black";
           if (Math.abs(Objs[i].alt-Objs[j].alt)<1000)
           {
             let dist = DistBetween(Objs[i],Objs[j]);
-            if (dist<80)
+            if (30<dist && dist<80)
             {
-              if (Objs[i].drawObject.color!="red")
-                Objs[i].drawObject.color="coral";
-              if (Objs[j].drawObject.color!="red")
-                Objs[j].drawObject.color="coral";
+              Objs[i].SetColor("orange");
+              Objs[j].SetColor("orange");
             }
             if (dist<30)
             {
-              Objs[i].drawObject.color="red";
-              Objs[j].drawObject.color="red";
+              Objs[i].SetColor("red");
+              Objs[j].SetColor("red");
             }
           }
         }

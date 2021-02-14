@@ -385,6 +385,7 @@ class MovingVector
     this.breadCrumbs=[];
     this.alt=30000;
     this.targetAlt=30000;
+    this.colors=["black"]; // default
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
   }
@@ -396,6 +397,28 @@ class MovingVector
     "DrawObj: "+JSON.stringify(this.drawObject)+"\n"+
     "View: "+JSON.stringify(this.view);
     return ret;
+  }
+  // currently green, orange, red
+  SetColor(color)
+  {
+    if (this.colors.indexOf(color)!=-1)
+      return;
+    this.colors.push(color);
+    this.colors=this.colors.sort();
+    this.drawObject.color=this.colors[this.colors.length-1];
+  }
+  ClearColor(color="all")
+  {
+    if (color=="all")
+    {
+      this.colors=["black"];
+      return;
+    }
+    let i = this.colors.indexOf(color);
+    if (i<1)
+      return;
+    this.colors.splice(i,1);
+    this.drawObject.color=this.colors[this.colors.length-1];
   }
   SetAltitude(alt)
   {
