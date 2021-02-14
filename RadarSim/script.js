@@ -15,8 +15,8 @@ function setup()
 {
   try
   {
-  AddStatus("Entering setup()");
-  AddStatus(JSON.stringify(vt));
+  //AddStatus("Entering setup()");
+  //AddStatus(JSON.stringify(vt));
   singleTouch = false;
   doubleTouch = false;
   dragmv = undefined; // dragging from this moving vector object 
@@ -30,7 +30,7 @@ function setup()
   context.fillStyle="black";
   context.textAlign = "center";
   PlaneButtonsOff(true);
-  AddStatus("Exiting setup()");
+  //AddStatus("Exiting setup()");
   }
   catch(err)
   {
@@ -106,6 +106,7 @@ var dragto = undefined;
 
 function onTouchStart(event) 
 {
+  if (Objs.length==0)return;
   //AddStatus("in Touch Start");
   if (event.touches.length == 1) 
   {
@@ -125,6 +126,7 @@ function onTouchStart(event)
 
 function onTouchMove(event) 
 {
+  if (Objs.length==0)return;
   // get first touch coordinates
   const touch0X = event.touches[0].pageX;
   const touch0Y = event.touches[0].pageY;
@@ -247,7 +249,7 @@ function onTouchEnd(event)
   singleTouch = false;
   doubleTouch = false;
 
-  if (Objs.length == 0) return;
+  if (Objs.length == 0 || dragto==undefined) return;
   if (dragmv!=undefined && dragmv.tag!="drag")return;
   //AddStatus(dragmv.Snapshot());
   let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
@@ -430,7 +432,7 @@ function Animate()
 {
 try
   {
-  AddStatus("In Animate");
+  //AddStatus("In Animate");
   var id = setInterval(frame, vt.fi);
   function frame() 
   {
