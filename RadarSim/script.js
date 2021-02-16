@@ -43,6 +43,25 @@ document.oncontextmenu = function() {
   return false;
 }
 
+function ClearStatus()
+{
+  get("status").value="";
+}
+
+function Debug(obj)
+{
+  if (obj.value=="Debug On")
+  {
+    obj.value="Debug off"
+    debugMode=true;
+  }
+  else
+  {
+    obj.value="Debug On"
+    debugMode=false;
+  }
+}
+
 function SetAltitude(obj)
 {
   if (dragmv != undefined)
@@ -106,8 +125,10 @@ var dragto = undefined;
 
 function onTouchStart(event) 
 {
+  try
+  {
+  //AddStatus("in Touch Start, with "+Objs.length+" planes");
   if (Objs.length==0)return;
-  //AddStatus("in Touch Start");
   if (event.touches.length == 1) 
   {
     singleTouch = true;
@@ -121,11 +142,18 @@ function onTouchStart(event)
   // store the last touches
   prevTouches[0] = event.touches[0];
   prevTouches[1] = event.touches[1];
-
+  }
+  catch (err)
+  {
+    AddStatus(err,true);
+  }
 }
 
 function onTouchMove(event) 
 {
+  try
+  {
+  //AddStatus("in onTouchMove with "+Objs.length+" planes");
   if (Objs.length==0)return;
   // get first touch coordinates
   const touch0X = event.touches[0].pageX;
@@ -145,24 +173,33 @@ function onTouchMove(event)
 
   if (singleTouch) 
   {
+    //AddStatus("SingleTouch");
     if (get("sketch").checked) 
     {
       // add to history
-      drawings.push({
+      drawings.push(
+      {
         lbl: "line",
         x0: prevScaledX,
         y0: prevScaledY,
         x1: scaledX,
         y1: scaledY
-      })
+      });
       drawLine(prevTouch0X, prevTouch0Y, touch0X, touch0Y);
     } 
     else  
     {
-      if (dragmv == undefined)
+      //AddStatus("not sketching");
+      if (dragmv == undefined || dragmv.tag=="ongs")
+      {
+        //AddStatus("dragmv == undefined");
         dragmv=new MovingVector(1, 1, scaledX, scaledY);
+      }
       else
+      {
+        //AddStatus("set color to green");
         dragmv.ClearColor("green");
+      }
       if (dragmv.tag == "none") 
       {
         //AddStatus("Find the closest plane");
@@ -184,6 +221,7 @@ function onTouchMove(event)
         dragmv = closestmv;
         dragmv.tag="drag";
       }
+      //AddStatus("setting color green");
       dragmv.SetColor("green");
       dragto = [touch0X, touch0Y]
     }
@@ -242,10 +280,18 @@ function onTouchMove(event)
   }
   prevTouches[0] = event.touches[0];
   prevTouches[1] = event.touches[1];
+  }
+  catch(err)
+  {
+    AddStatus(err,true);
+  }
 }
 
 function onTouchEnd(event) 
 {
+  try
+  {
+  //AddStatus("in onTouchEnd");
   singleTouch = false;
   doubleTouch = false;
 
@@ -267,6 +313,11 @@ function onTouchEnd(event)
   else
     dragmv.vector.SetDirection(dragVector.GetDirection());
   dragmv.tag="none";
+  }
+  catch(err)
+  {
+    AddStatus(err,true);
+  }
 }
 function Settings()
 {
