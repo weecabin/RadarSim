@@ -49,17 +49,28 @@
 
   </div>
   <div class="divider"/>
-  <input id="addplane" type="button" value="Add Plane" onclick="AddPlane()">
-  <input id="addplanes" type="button" value="Add Planes" onclick="AddPlanes()">
+
   <input id="animate" type="button" value="Start Animation"
          onclick="StartAnimation()">
+  Speed:<input id="speed" size="4" type="textbox" value="1">
+  <input id="radiusturn" type="checkbox" checked> Radius Turn
+
+
+
   <input type="button" value="Clear Sketch" onclick="ClearSketch()">
-  Speed:<input id="speed" size="4" type="textbox" value="1"><br><br>
+  <input id="vector" type="radio" name="drawoption" checked>Vector
+  <input id="sketch" type="radio" name="drawoption">Sketch<br>
+  <input id="addplane" type="button" value="Add Plane" onclick="AddPlane()"><br>
+  <input id="addplanes" type="button" value="Add Planes" onclick="AddPlanes()">
+  <input id="addleft" type="checkbox" checked> Left
+  <input id="addright" type="checkbox" checked> Right
+  <input id="addtop" type="checkbox" checked> Top
+  <input id="addbottom" type="checkbox" checked> Bottom<br>
   <input type="button" value="Debug On" onclick="Debug(this)">
   <input type="button" value="Clear Status" onclick="ClearStatus()">
-  <input id="radiusturn" type="checkbox" checked> Radius Turn
-  <input id="vector" type="radio" name="drawoption" checked>Vector
-  <input id="sketch" type="radio" name="drawoption">Sketch
+
+
+
   <p id="debug01"></p>
   <p id="debug02"></p>
   <p id="debug03"></p>

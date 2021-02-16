@@ -355,9 +355,18 @@ function AddPlanes()
     let speed=Number(get("speed").value);
     let vlen=VectorLength(150,.03,10)*speed;
     button.value="Stop Add";
-    var id2 = setInterval(addPlanes, 5000);
     let midx = (xmin+xmax)/2;
     let midy = (ymin+ymax)/2;
+    let sides = [];
+    if (get("addleft").checked)
+      sides.push("left");
+    if (get("addtop").checked)
+      sides.push("top");
+    if (get("addright").checked)
+      sides.push("right");
+    if (get("addbottom").checked)
+      sides.push("bottom");
+    var id2 = setInterval(addPlanes, 5000);
     function addPlanes()
     {
       if (button.value!="Stop Add") 
@@ -370,34 +379,38 @@ function AddPlanes()
       let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
       let movingVector;
-      switch ((++side)%4)
+      switch (sides[side])
       {
-        case 0:// left
-        movingVector = new MovingVector(vlen,0,xmin,randy,plane,vt);
-        var unitv = new Vector(midx-xmin,midy-randy).Unit();
-        movingVector.vector.SetDirection(unitv.GetDirection());
-        Objs.push(movingVector);
+        case "left":
+          movingVector = new MovingVector(vlen,0,xmin,randy,plane,vt);
+          var unitv = new Vector(midx-xmin,midy-randy).Unit();
+          movingVector.vector.SetDirection(unitv.GetDirection());
+          Objs.push(movingVector);
+          if(++side>=sides.length)side=0;
         break;
 
-        case 1:// top
-        movingVector = new MovingVector(vlen,0,randx,ymin,plane,vt);
-        var unitv = new Vector(midx-randx,midy-ymin).Unit();
-        movingVector.vector.SetDirection(unitv.GetDirection());
-        Objs.push(movingVector);
+        case "top":
+          movingVector = new MovingVector(vlen,0,randx,ymin,plane,vt);
+          var unitv = new Vector(midx-randx,midy-ymin).Unit();
+          movingVector.vector.SetDirection(unitv.GetDirection());
+          Objs.push(movingVector);
+          if(++side>=sides.length)side=0;
         break;
 
-        case 2:// right
-        movingVector = new MovingVector(vlen,0,xmax,randy,plane,vt);
-        var unitv = new Vector(midx-xmax,midy-randy).Unit();
-        movingVector.vector.SetDirection(unitv.GetDirection());
-        Objs.push(movingVector);
+        case "right":
+          movingVector = new MovingVector(vlen,0,xmax,randy,plane,vt);
+          var unitv = new Vector(midx-xmax,midy-randy).Unit();
+          movingVector.vector.SetDirection(unitv.GetDirection());
+          Objs.push(movingVector);
+          if(++side>=sides.length)side=0;
         break;
 
-        case 3:// bottom
-        movingVector = new MovingVector(vlen,0,randx,ymax,plane,vt);
-        var unitv = new Vector(midx-randx,midy-ymax).Unit();
-        movingVector.vector.SetDirection(unitv.GetDirection());
-        Objs.push(movingVector);
+        case "bottom":
+          movingVector = new MovingVector(vlen,0,randx,ymax,plane,vt);
+          var unitv = new Vector(midx-randx,midy-ymax).Unit();
+          movingVector.vector.SetDirection(unitv.GetDirection());
+          Objs.push(movingVector);
+          if(++side>=sides.length)side=0;
         break;
       }
     }
