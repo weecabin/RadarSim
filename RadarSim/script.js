@@ -70,7 +70,7 @@ function SetAltitude(obj)
   }
 }
 
-function redrawCanvas(heightPercent = 80, widthPercent = 90) 
+function redrawCanvas(heightPercent = 70, widthPercent = 90) 
 {
   // set the canvas to the size of the window
   canvas.width = document.body.clientWidth * widthPercent / 100;
@@ -128,7 +128,6 @@ function onTouchStart(event)
   try
   {
   //AddStatus("in Touch Start, with "+Objs.length+" planes");
-  if (Objs.length==0)return;
   if (event.touches.length == 1) 
   {
     singleTouch = true;
@@ -154,7 +153,7 @@ function onTouchMove(event)
   try
   {
   //AddStatus("in onTouchMove with "+Objs.length+" planes");
-  if (Objs.length==0)return;
+
   // get first touch coordinates
   const touch0X = event.touches[0].pageX;
   const touch0Y = event.touches[0].pageY;
@@ -173,6 +172,7 @@ function onTouchMove(event)
 
   if (singleTouch) 
   {
+    if (Objs.length==0)return;
     //AddStatus("SingleTouch");
     if (get("sketch").checked) 
     {
@@ -355,8 +355,8 @@ function AddPlanes()
     let speed=Number(get("speed").value);
     let vlen=VectorLength(150,.03,10)*speed;
     button.value="Stop Add";
-    let midx = (xmin+xmax)/2;
-    let midy = (ymin+ymax)/2;
+    let midx = runway1.x;
+    let midy = runway1.y
     let sides = [];
     if (get("addleft").checked)
       sides.push("left");
