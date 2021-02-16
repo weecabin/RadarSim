@@ -566,6 +566,7 @@ try
             mv.CancelSlew();
             mv.vector.SetDirection(0);
             mv.tag="ongs";
+            mv.SetColor("silver");
           }
           if (dist1<200)
             mv.speedMult=1.333;
