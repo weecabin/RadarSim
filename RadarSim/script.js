@@ -1,6 +1,7 @@
 // get our canvas element
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
+var canvasRect;
 
 // list of all strokes drawn
 const drawings = [];
@@ -29,11 +30,13 @@ function setup()
   context.font = "15px Georgia";
   context.fillStyle="black";
   context.textAlign = "center";
-  PlaneButtonsOff(true);
+  canvasRect = canvas.getBoundingClientRect();
+  //AddStatus("top="+canvasRect.top);
   //AddStatus("Exiting setup()");
   }
   catch(err)
   {
+    AddStatus("setup error...");
     AddStatus(err);
   }
 }
@@ -43,6 +46,77 @@ document.oncontextmenu = function() {
   return false;
 }
 
+function HideDropDowns(notThis)
+{
+  let dropped = document.querySelectorAll(".menu-content");
+  for (let dd of dropped)
+  { 
+    if (notThis==undefined || dd!=notThis)
+      dd.style.display="";
+  }
+}
+
+function DropDown(btn)
+{
+
+  let dd = btn.parentElement.querySelector('.menu-content');
+  HideDropDowns(dd);
+  if (dd.style.display=="")
+  {
+    dd.style.display="block";
+  }
+  else
+  {
+    dd.style.display="";
+  }
+}
+function BtnClicked(btn)
+{
+  HideDropDowns();
+  //AddStatus(btn.name+" clicked");
+  btn.parentElement.style.display="";
+  switch (btn.name)
+  {
+    case "start":
+    if (btn.innerHTML=="Start")
+    {
+      btn.innerHTML="Stop";
+      StartAnimation(true);
+    }
+    else
+    {
+      btn.innerHTML="Start";
+      StartAnimation(false);
+    }
+    break;
+
+    case "addplanes":
+    AddPlanes();
+    break;
+
+    case "addplane":
+    AddPlane();
+    break;
+
+    case "alt":
+    //AddStatus(btn.innerHTML);
+    SetAltitude(btn);
+    break;
+
+    case "clearsketch":
+    ClearSketch();
+    break;
+
+    case "clearstatus":
+    ClearStatus();
+    break;
+
+    case "debug":
+    Debug(btn);
+    break;
+  }
+}
+
 function ClearStatus()
 {
   get("status").value="";
@@ -50,14 +124,14 @@ function ClearStatus()
 
 function Debug(obj)
 {
-  if (obj.value=="Debug On")
+  if (obj.innerHTML=="Debug On")
   {
-    obj.value="Debug off"
+    obj.innerHTML="Debug off"
     debugMode=true;
   }
   else
   {
-    obj.value="Debug On"
+    obj.innerHTML="Debug On"
     debugMode=false;
   }
 }
@@ -70,7 +144,7 @@ function SetAltitude(obj)
   }
 }
 
-function redrawCanvas(heightPercent = 70, widthPercent = 90) 
+function redrawCanvas(heightPercent = 80, widthPercent = 100) 
 {
   // set the canvas to the size of the window
   canvas.width = document.body.clientWidth * widthPercent / 100;
@@ -156,9 +230,9 @@ function onTouchMove(event)
 
   // get first touch coordinates
   const touch0X = event.touches[0].pageX;
-  const touch0Y = event.touches[0].pageY;
+  const touch0Y = event.touches[0].pageY-canvasRect.top;
   const prevTouch0X = prevTouches[0].pageX;
-  const prevTouch0Y = prevTouches[0].pageY;
+  const prevTouch0Y = prevTouches[0].pageY-canvasRect.top;
 
   const scaledX = vt.toTrueX(touch0X);
   const scaledY = vt.toTrueY(touch0Y);
@@ -344,9 +418,9 @@ function ClearSketch(clearAll=false)
 function AddPlanes()
 {
   let button = get("addplanes");
-  switch (button.value)
+  switch (button.innerHTML)
   {
-    case "Add Planes":
+    case "Start":
     let ymin = vt.toTrueY(0);
     let ymax = vt.toTrueY(canvas.height);
     let xmin = vt.toTrueX(0);
@@ -354,7 +428,7 @@ function AddPlanes()
     let side=0;
     let speed=Number(get("speed").value);
     let vlen=VectorLength(150,.03,10)*speed;
-    button.value="Stop Add";
+    button.innerHTML="Stop";
     let midx = runway1.x;
     let midy = runway1.y
     let sides = [];
@@ -369,7 +443,7 @@ function AddPlanes()
     var id2 = setInterval(addPlanes, 5000);
     function addPlanes()
     {
-      if (button.value!="Stop Add") 
+      if (button.innerHTML!="Stop") 
       {
         clearInterval(id2);
         return;
@@ -416,8 +490,8 @@ function AddPlanes()
     }
     break;
 
-    case "Stop Add":
-    button.value="Add Planes";
+    case "Stop":
+    button.innerHTML="Start";
     break;
   }
 }
@@ -447,21 +521,19 @@ function PlaneButtonsOff(truefalse)
   get("addplanes").disabled=truefalse;
 }
 
-function StartAnimation()
+function StartAnimation(start)
 {
-  if (runAnimate) // running, so stop
+  if (!start) // stop
   {
     runAnimate=false;
-    get("animate").value="Start Animation";
     AddPlanes(true);
     PlaneButtonsOff(true);
   }
-  else // not running, so start
+  else // start
   {
     ClearSketch(true)
     Objs=[];
     runAnimate=true;
-    get("animate").value="Stop Animation";
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
     DrawRunway(runway1.x,runway1.y,20,100,10);
     DrawRunway(runway2.x,runway2.y,20,100,10);
@@ -585,7 +657,7 @@ try
             mv.speedMult=1.333;
           else if (dist1<400)
             mv.speedMult=1.6;
-          else if (dist1<1000)
+          else if (dist1<700)
             mv.speedMult=2;
           else
             mv.speedMult=3;
@@ -610,7 +682,7 @@ try
                     "  Speed="+(MvSpeed(dragmv,.03,10)).toFixed(1)+
                     "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
       }
-      get("debug02").innerHTML=Objs.length+" Objects";
+      get("debug02").innerHTML=Objs.length+" Planes";
       // draw all the planes
       for (let mv of Objs)
       {

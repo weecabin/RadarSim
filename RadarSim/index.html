@@ -34,47 +34,80 @@
 </head>
 
 <body id="app" onload="setup();" content="user-scalable=no">
-  <canvas id="canvas">Your browser does not support HTML5 canvas</canvas>
-  <div class="commands">
-    <p onclick="SetAltitude(this)">20000</p>
-    <p onclick="SetAltitude(this)">15000</p>
-    <p onclick="SetAltitude(this)">11000</p>
-    <p onclick="SetAltitude(this)">9000</p>
-    <p onclick="SetAltitude(this)">8000</p>
-    <p onclick="SetAltitude(this)">7000</p>
-    <p onclick="SetAltitude(this)">6000</p>
-    <p onclick="SetAltitude(this)">5000</p>
-    <p onclick="SetAltitude(this)">4000</p>
-    <p onclick="SetAltitude(this)">3000</p>
 
+  <div class="menu-wrapper">
+
+  <button class="menu-btn" name="start" 
+   onclick="BtnClicked(this)">Start</button>
+
+  <div class="dropdown-menu">
+  <button class="menu-btn" onclick="DropDown(this)">Options&#8595</button>
+  <div id="dd0" class="menu-content">
+  <label class="dropdown-label">
+  <input id="radiusturn" type="checkbox" checked>Radius Turn</label>
+  <label class="dropdown-label">
+  <input id="vector" type="radio" name="draw" checked>Vector</label>
+  <label class="dropdown-label">
+  <input id="sketch" type="radio" name="draw">Sketch</label>
+  <label class="dropdown-label">
+  Speed <input id="speed" size="4" 
+        type="textbox" value="1"></label>
   </div>
+  </div>
+
+  <button class="menu-btn" name="addplane" 
+   onclick="BtnClicked(this)">Add Plane</button>
+
+  <div class="dropdown-menu">
+  <button class="menu-btn" onclick="DropDown(this)">Add Planes&#8595</button>
+  <div id="dd1" class="menu-content">
+  <button id="addplanes" class="links" name="addplanes" value="Start"
+    onclick="BtnClicked(this)">Start</button>
+  <label class="dropdown-label">
+  <input id="addleft" type="checkbox" checked>Left</label>
+  <label class="dropdown-label">
+  <input id="addtop" type="checkbox" checked>Top</label>
+  <label class="dropdown-label">
+  <input id="addright" type="checkbox" checked>Right</label>
+  <label class="dropdown-label">
+  <input id="addbottom" type="checkbox" checked>Bottom</label>
+  </div>
+  </div>
+
+  <div class="dropdown-menu">
+  <button class="menu-btn" onclick="DropDown(this)">Altitude&#8595</button>
+  <div id="dd2" class="menu-content">
+  <button  class="links" name="alt" onclick="BtnClicked(this)">25000</button>
+  <button  class="links" name="alt" onclick="BtnClicked(this)">11000</button>
+  <button  class="links" name="alt" onclick="BtnClicked(this)">9000</button>
+  <button  class="links" name="alt" onclick="BtnClicked(this)">6000</button>
+  <button  class="links" name="alt" onclick="BtnClicked(this)">5000</button>
+  <button  class="links" name="alt" onclick="BtnClicked(this)">4000</button>
+  <button  class="links" name="alt" onclick="BtnClicked(this)">3000</button>
+  <button  class="links" name="alt" onclick="BtnClicked(this)">2000</button>
+  </div>
+  </div>
+
+
+  <div class="dropdown-menu">
+  <button class="menu-btn" onclick="DropDown(this)">Tools&#8595</button>
+  <div id="dd1" class="menu-content">
+  <button id="clearsketch" class="links" name="clearsketch"
+          onclick="BtnClicked(this)">Clear Sketch</button>
+  <button id="debug" class="links" name="debug"
+          onclick="BtnClicked(this)">Debug On</button>
+  <button id="clearstatus" class="links" name="clearstatus"
+          onclick="BtnClicked(this)">Clear Status</button>
+  </div>
+  </div>
+  </div><br>
+
+  <canvas id="canvas">Your browser does not support HTML5 canvas</canvas>
   <div class="divider"/>
-
-  <input id="animate" type="button" value="Start Animation"
-         onclick="StartAnimation()">
-  Speed:<input id="speed" size="4" type="textbox" value="1">
-  <input id="radiusturn" type="checkbox" checked> Radius Turn
-
-
-
-  <input type="button" value="Clear Sketch" onclick="ClearSketch()">
-  <input id="vector" type="radio" name="drawoption" checked>Vector
-  <input id="sketch" type="radio" name="drawoption">Sketch<br>
-  <input id="addplane" type="button" value="Add Plane" onclick="AddPlane()"><br>
-  <input id="addplanes" type="button" value="Add Planes" onclick="AddPlanes()">
-  <input id="addleft" type="checkbox" checked> Left
-  <input id="addright" type="checkbox" checked> Right
-  <input id="addtop" type="checkbox" checked> Top
-  <input id="addbottom" type="checkbox" checked> Bottom<br>
-  <input type="button" value="Debug On" onclick="Debug(this)">
-  <input type="button" value="Clear Status" onclick="ClearStatus()">
-
-
 
   <p id="debug01"></p>
   <p id="debug02"></p>
   <p id="debug03"></p>
-
 
   <textarea id="status" value="Status..."></textarea>
 

@@ -34,3 +34,67 @@ p
   margin-top: .4em;
   margin-left: 1em;
 }
+
+.menu-wrapper
+{
+  background-color: #055575;
+  display: inline-block;
+}
+
+.menu-btn {
+   background-color: #017575;
+   color: white;
+   padding: 5px 10px 5px 10px;;
+   font-size: 12px;
+   font-weight: bolder;
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.dropdown-menu {
+   position: relative;
+   display: inline-block;
+}
+.menu-content {
+   display: none;
+   position: absolute;
+   background-color: #017575;
+   min-width:150px;
+   z-index: 1;
+}
+.links {
+   color: rgb(255, 255, 255);
+   padding: 5px 5px 5px 10px;
+   text-decoration: none;
+   display: block;
+   font-size: 18px;
+   font-weight: bold;
+   border-bottom: 1px solid black;
+   border:none;
+}
+.inlink
+{
+  padding: 10px;
+  font-size: 18px;
+}
+
+.dropdown-label 
+{
+ padding:10px;
+ display:block; 
+ font-size: 18px;
+ color: rgb(255, 255, 255);
+}
+
+.dropdown-textbox 
+{
+ padding:10px;
+ display:block; 
+ font-size: 10px;
+ color: rgb(255, 255, 255);
+}
+
+.links:hover {
+   background-color: rgb(8, 107, 46);
+}
+.dropdown-menu:hover .menu-btn {
+   background-color: #3e8e41;
+}
