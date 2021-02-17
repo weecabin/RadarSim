@@ -158,6 +158,7 @@ function redrawCanvas(heightPercent = 80, widthPercent = 100)
 
   context.fillStyle = '#fff';
   context.fillRect(0, 0, canvas.width, canvas.height);
+  canvasRect = canvas.getBoundingClientRect();
   for (let i = 0; i < drawings.length; i++) 
   {
     const line = drawings[i];
