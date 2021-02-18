@@ -389,6 +389,11 @@ class MovingVector
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
   }
+  Stats()
+  {
+    return "Speed="+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(1)+
+            " Alt="+this.alt+">"+this.targetAlt;
+  }
   Snapshot()
   {
     let ret="MovingVector Snapshot\n"+
@@ -398,7 +403,11 @@ class MovingVector
     "View: "+JSON.stringify(this.view);
     return ret;
   }
-  // currently green, orange, red
+  ContainsColor(color)
+  {
+    return this.colors.indexOf(color)!=-1;
+  }
+  // currently green, orange, red, silver
   SetColor(color)
   {
     if (this.colors.indexOf(color)!=-1)

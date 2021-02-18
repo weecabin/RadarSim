@@ -46,6 +46,7 @@ document.oncontextmenu = function() {
   return false;
 }
 
+// closes all drop down menus, with the exception of the one passed in
 function HideDropDowns(notThis)
 {
   let dropped = document.querySelectorAll(".menu-content");
@@ -56,6 +57,7 @@ function HideDropDowns(notThis)
   }
 }
 
+// toggles the display of a menu below a drop down button
 function DropDown(btn)
 {
 
@@ -70,6 +72,8 @@ function DropDown(btn)
     dd.style.display="";
   }
 }
+
+// handles all menu button clicks
 function BtnClicked(btn)
 {
   HideDropDowns();
@@ -77,7 +81,7 @@ function BtnClicked(btn)
   btn.parentElement.style.display="";
   switch (btn.name)
   {
-    case "start":
+    case "startsim":
     if (btn.innerHTML=="Start")
     {
       btn.innerHTML="Stop";
@@ -138,9 +142,11 @@ function Debug(obj)
 
 function SetAltitude(obj)
 {
-  if (dragmv != undefined)
+  if (Objs.length>0)
   {
-    dragmv.SetAltitude(Number(obj.innerHTML));
+    let mv = Objs.filter(x=>x.ContainsColor("green"));
+    if (mv.length==1)
+      mv[0].SetAltitude(Number(obj.innerHTML));
   }
 }
 
@@ -207,12 +213,7 @@ function onTouchStart(event)
   {
     singleTouch = true;
     doubleTouch = false;
-    if (dragmv!=undefined)
-      dragmv.ClearColor("green");
-    let touchX = event.touches[0].pageX;
-    let touchY = event.touches[0].pageY-canvasRect.top;
-    dragmv = ClosestPlane(vt.toTrueX(touchX),vt.toTrueY(touchY));
-    dragmv.SetColor("green");
+    dragmv=undefined;
   }
   if (event.touches.length >= 2) 
   {
@@ -291,11 +292,14 @@ function onTouchMove(event)
     else  
     {
       //AddStatus("not sketching");
-      if (dragmv == undefined || dragmv.tag=="ongs")
+      if (dragmv == undefined || dragmv.tag!="drag")
         dragmv=ClosestPlane(scaledX, scaledY);
       if (dragmv.tag == "none") 
         dragmv.tag="drag";
       //AddStatus("setting color green");
+      let green = Objs.filter(x=>x.ContainsColor("green"));
+      for (let x of green)
+        x.ClearColor("green");
       dragmv.SetColor("green");
       dragto = [touch0X, touch0Y]
     }
@@ -303,7 +307,7 @@ function onTouchMove(event)
 
   if (doubleTouch) 
   {
-    if (dragmv!=undefined)dragmv.tag="none";
+    dragmv=undefined;
     //AddStatus("double");
     // get second touch coordinates
     const touch1X = event.touches[1].pageX;
@@ -324,7 +328,7 @@ function onTouchMove(event)
     // calculate the screen scale change
     var zoomAmount = hypot / prevHypot;
     vt.scale = vt.scale * zoomAmount;
-    get("debug02").innerHTML = "Scale=" + vt.scale.toFixed(2);
+    //get("debug02").innerHTML = "Scale=" + vt.scale.toFixed(2);
     const scaleAmount = 1 - zoomAmount;
 
     // calculate how many pixels the midpoints have moved in the x and y direction
@@ -366,12 +370,26 @@ function onTouchEnd(event)
   try
   {
   //AddStatus("in onTouchEnd");
-  singleTouch = false;
-  doubleTouch = false;
+
 
   if (Objs.length == 0)return;
-  if (dragto==undefined) return;
-  if (dragmv!=undefined && dragmv.tag!="drag")return;
+  if ((dragto==undefined || dragmv==undefined) && singleTouch) 
+  {
+    // this was a tap, clear previous green, and select a new one.
+    let green = Objs.filter(x=>x.ContainsColor("green"));
+    for (let x of green)
+      x.ClearColor("green");
+    let touchX = prevTouches[0].pageX;
+    let touchY = prevTouches[0].pageY-canvasRect.top;
+    let tempmv = ClosestPlane(vt.toTrueX(touchX),vt.toTrueY(touchY));
+    tempmv.SetColor("green");
+    get("debug01").innerHTML= tempmv.Stats();
+    singleTouch = false;
+    return;
+  }
+  singleTouch = false;
+  doubleTouch = false;
+  if (dragmv==undefined || dragmv.tag!="drag")return;
   //AddStatus(dragmv.Snapshot());
   let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
     vt.toTrueY(dragto[1]) - dragmv.ypos);
@@ -527,7 +545,6 @@ function StartAnimation(start)
   if (!start) // stop
   {
     runAnimate=false;
-    AddPlanes(true);
     PlaneButtonsOff(true);
   }
   else // start
@@ -680,7 +697,7 @@ try
         get("debug01").innerHTML="Assigned Heading = "+
                     heading+
                     // MvSpeed(movingVector,frameRate,pixelsPerMile)
-                    "  Speed="+(MvSpeed(dragmv,.03,10)).toFixed(1)+
+                    "  Speed="+(MvSpeed(dragmv,vt.fi/1000,10)).toFixed(1)+
                     "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
       }
       get("debug02").innerHTML=Objs.length+" Planes";
