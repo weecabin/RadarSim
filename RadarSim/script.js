@@ -432,8 +432,6 @@ function ClearSketch(clearAll=false)
     drawings.pop();
   }
   redrawCanvas();
-  for (let mv of Objs)
-    AddStatus(JSON.stringify(mv.colors));
 }
 
 function AddPlanes()
