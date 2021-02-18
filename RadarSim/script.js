@@ -91,6 +91,8 @@ function BtnClicked(btn)
     {
       btn.innerHTML="Start";
       StartAnimation(false);
+      // stop addplanes if its running
+      get("addplanes").innerHTML="Start";
     }
     break;
 
@@ -532,20 +534,11 @@ function AddPlane()
   Objs.push(movingVector);
 }
 
-function PlaneButtonsOff(truefalse)
-{
-  get("addplane").disabled=truefalse;
-  if (get("addplanes").value=="Stop Add")
-    AddPlanes(); // callmit again to stop it
-  get("addplanes").disabled=truefalse;
-}
-
 function StartAnimation(start)
 {
   if (!start) // stop
   {
     runAnimate=false;
-    PlaneButtonsOff(true);
   }
   else // start
   {
@@ -556,7 +549,6 @@ function StartAnimation(start)
     DrawRunway(runway1.x,runway1.y,20,100,10);
     DrawRunway(runway2.x,runway2.y,20,100,10);
     Animate();
-    PlaneButtonsOff(false);
   }
 }
 
@@ -607,7 +599,6 @@ try
         mv.Move();
       } 
       // look for planes too close
-      //for (let mv of Objs)mv.drawObject.color="black";
       for (let mv of Objs)
       {
         mv.ClearColor("red");
