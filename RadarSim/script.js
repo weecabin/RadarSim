@@ -207,6 +207,12 @@ function onTouchStart(event)
   {
     singleTouch = true;
     doubleTouch = false;
+    if (dragmv!=undefined)
+      dragmv.ClearColor("green");
+    let touchX = event.touches[0].pageX;
+    let touchY = event.touches[0].pageY-canvasRect.top;
+    dragmv = ClosestPlane(vt.toTrueX(touchX),vt.toTrueY(touchY));
+    dragmv.SetColor("green");
   }
   if (event.touches.length >= 2) 
   {
@@ -221,6 +227,26 @@ function onTouchStart(event)
   {
     AddStatus(err,true);
   }
+}
+
+function ClosestPlane(scaledX,scaledY)
+{
+  let tempmv = new MovingVector(1, 1, scaledX, scaledY);
+  let closestmv = Objs[0];
+  //AddStatus("checking distance with temp");
+  let dist = DistBetween(tempmv, closestmv);
+  for (let mv of Objs) 
+  {
+    //AddStatus("checking distance");
+    let testdist = DistBetween(mv, tempmv);
+    if (testdist < dist) 
+    {
+      //AddStatus("found closest="+mv.xpos+","+mv.ypos);
+      dist = testdist;
+      closestmv = mv;
+    }
+  }
+  return closestmv;
 }
 
 function onTouchMove(event) 
@@ -266,36 +292,9 @@ function onTouchMove(event)
     {
       //AddStatus("not sketching");
       if (dragmv == undefined || dragmv.tag=="ongs")
-      {
-        //AddStatus("dragmv == undefined");
-        dragmv=new MovingVector(1, 1, scaledX, scaledY);
-      }
-      else
-      {
-        //AddStatus("set color to green");
-        dragmv.ClearColor("green");
-      }
+        dragmv=ClosestPlane(scaledX, scaledY);
       if (dragmv.tag == "none") 
-      {
-        //AddStatus("Find the closest plane");
-        let tempmv = new MovingVector(1, 1, scaledX, scaledY);
-        let closestmv = Objs[0];
-        //AddStatus("checking distance with temp");
-        let dist = DistBetween(tempmv, closestmv);
-        for (let mv of Objs) 
-        {
-          //AddStatus("checking distance");
-          let testdist = DistBetween(mv, tempmv);
-          if (testdist < dist) 
-          {
-            //AddStatus("found closest="+mv.xpos+","+mv.ypos);
-            dist = testdist;
-            closestmv = mv;
-          }
-        }
-        dragmv = closestmv;
         dragmv.tag="drag";
-      }
       //AddStatus("setting color green");
       dragmv.SetColor("green");
       dragto = [touch0X, touch0Y]
@@ -370,14 +369,15 @@ function onTouchEnd(event)
   singleTouch = false;
   doubleTouch = false;
 
-  if (Objs.length == 0 || dragto==undefined) return;
+  if (Objs.length == 0)return;
+  if (dragto==undefined) return;
   if (dragmv!=undefined && dragmv.tag!="drag")return;
   //AddStatus(dragmv.Snapshot());
   let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
     vt.toTrueY(dragto[1]) - dragmv.ypos);
   let direction = Math.round(dragVector.GetDirection()/10)*10;
   dragVector.SetDirection(direction);
-  // allow the user to cancel the vector by moving back to the origin
+  // allow the user to cancel the vector by moving back to the plane
   if (dragVector.GetLength() < (25 / vt.scale)) 
   {
     dragmv.tag = "none";
@@ -618,7 +618,7 @@ try
         }
       }
       // check for intercepts
-      // set speed while were at it
+      // set speed while we're at it
       // further away 
       for (let i=0;i<Objs.length;i++)
       {
