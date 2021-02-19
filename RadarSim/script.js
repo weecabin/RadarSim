@@ -459,7 +459,8 @@ function AddPlanes()
       sides.push("right");
     if (get("addbottom").checked)
       sides.push("bottom");
-    var id2 = setInterval(addPlanes, 5000);
+    let rate = get("insertrate").value;
+    var id2 = setInterval(addPlanes, rate*1000);
     function addPlanes()
     {
       if (button.innerHTML!="Stop") 
