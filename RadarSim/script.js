@@ -47,36 +47,48 @@ document.oncontextmenu = function() {
 }
 
 // closes all drop down menus, with the exception of the one passed in
-function HideDropDowns(notThis)
+function CloseAllDropDowns(skip=null)
 {
-  let dropped = document.querySelectorAll(".menu-content");
-  for (let dd of dropped)
-  { 
-    if (notThis==undefined || dd!=notThis)
-      dd.style.display="";
+  let menu = document.getElementById("main-menu");
+  let dropdowns = menu.querySelectorAll(".menu-content");
+  for (let dd of dropdowns)
+  {
+    if (dd!=skip)
+      CloseDropDown(dd);
   }
+}
+
+function CloseDropDown(child)
+{
+  let dropmenu = child.closest(".dropdown-menu");
+  let dropbtn = dropmenu.querySelector('.menu-btn');
+  let arrow = dropbtn.getElementsByTagName("span")[0];
+  let dropdwn = dropmenu.querySelector('.menu-content');
+  arrow.innerHTML='&#x2193';
+  dropdwn.style.display="";
 }
 
 // toggles the display of a menu below a drop down button
 function DropDown(btn)
 {
-
+  let arrow = btn.getElementsByTagName("span")[0];
   let dd = btn.parentElement.querySelector('.menu-content');
-  HideDropDowns(dd);
+  CloseAllDropDowns(dd);
   if (dd.style.display=="")
   {
+    arrow.innerHTML='&#x2191';
     dd.style.display="block";
   }
   else
   {
-    dd.style.display="";
+    CloseDropDown(btn);
   }
 }
 
 // handles all menu button clicks
 function BtnClicked(btn)
 {
-  HideDropDowns();
+  CloseAllDropDowns();
   //AddStatus(btn.name+" clicked");
   btn.parentElement.style.display="";
   switch (btn.name)
@@ -611,7 +623,7 @@ try
           if (Math.abs(Objs[i].alt-Objs[j].alt)<1000)
           {
             let dist = DistBetween(Objs[i],Objs[j]);
-            if (30<dist && dist<80)
+            if (30<dist && dist<60)
             {
               Objs[i].SetColor("orange");
               Objs[j].SetColor("orange");

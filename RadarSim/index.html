@@ -35,13 +35,14 @@
 
 <body id="app" onload="setup();" content="user-scalable=no">
 
-  <div class="menu-wrapper">
+  <div id="main-menu" class="menu-wrapper">
 
   <button class="menu-btn" name="startsim"
    onclick="BtnClicked(this)">Start</button>
 
   <div class="dropdown-menu">
-  <button class="menu-btn" onclick="DropDown(this)">Options&#8595</button>
+  <button class="menu-btn" onclick="DropDown(this)">
+          Options<span id="arrow">&#x2193</span></button>
   
   <div id="dd0" class="menu-content">
   <label class="dropdown-label">
@@ -60,7 +61,8 @@
    onclick="BtnClicked(this)">Add Plane</button>
 
   <div class="dropdown-menu">
-  <button class="menu-btn" onclick="DropDown(this)">Add Planes&#8595</button>
+  <button class="menu-btn" onclick="DropDown(this)">
+          Add Planes<span id="arrow">&#x2193</span></button>
   <div id="dd1" class="menu-content">
   <button id="addplanes" class="links" name="addplanes" value="Start"
     onclick="BtnClicked(this)">Start</button>
@@ -79,7 +81,8 @@
   </div>
 
   <div class="dropdown-menu">
-  <button class="menu-btn" onclick="DropDown(this)">Altitude&#8595</button>
+  <button class="menu-btn" onclick="DropDown(this)">
+          Altitude<span id="arrow">&#x2193</span></button>
   <div id="dd2" class="menu-content">
   <button  class="links" name="alt" onclick="BtnClicked(this)">25000</button>
   <button  class="links" name="alt" onclick="BtnClicked(this)">11000</button>
@@ -94,7 +97,8 @@
 
 
   <div class="dropdown-menu">
-  <button class="menu-btn" onclick="DropDown(this)">Tools&#8595</button>
+  <button class="menu-btn" onclick="DropDown(this)">
+          Tools<span id="arrow">&#x2193</span></button>
   <div id="dd1" class="menu-content">
   <button id="clearsketch" class="links" name="clearsketch"
           onclick="BtnClicked(this)">Clear Sketch</button>
