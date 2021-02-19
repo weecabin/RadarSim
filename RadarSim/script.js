@@ -121,6 +121,11 @@ function BtnClicked(btn)
     SetAltitude(btn);
     break;
 
+    case "speed":
+    //AddStatus(btn.innerHTML);
+    SetSpeed(Number(btn.innerHTML));
+    break;
+
     case "clearsketch":
     ClearSketch();
     break;
@@ -161,6 +166,19 @@ function SetAltitude(obj)
     let mv = Objs.filter(x=>x.ContainsColor("green"));
     if (mv.length==1)
       mv[0].SetAltitude(Number(obj.innerHTML));
+  }
+}
+
+function SetSpeed(speed)
+{
+  if (Objs.length>0)
+  {
+    let mv = Objs.filter(x=>x.ContainsColor("green"));
+    if (mv.length==1)
+    {
+      let currentSpeed= MvSpeed(mv[0],vt.fi/1000,10);
+      mv[0].vector.ScaleMe(speed/currentSpeed);
+    }
   }
 }
 
@@ -458,7 +476,7 @@ function AddPlanes()
     let xmax = vt.toTrueX(canvas.width);
     let side=0;
     let speed=Number(get("speed").value);
-    let vlen=VectorLength(150,.03,10)*speed;
+    let vlen=VectorLength(150,vt.FrameIntervalInSeconds(),10)*speed;
     button.innerHTML="Stop";
     let midx = runway1.x;
     let midy = runway1.y
@@ -537,7 +555,8 @@ function AddPlane()
   let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
   // VectorLength(targetMPH,frameInterval,pixelsPerMile)
-  let vlen=VectorLength(150,.03,10)*Number(get("speed").value);
+  let vlen=VectorLength(150,vt.FrameIntervalInSeconds(),10)*
+           Number(get("speed").value);
   //AddStatus("vector length="+vlen);
   let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
   movingVector.vector.SetDirection(45);

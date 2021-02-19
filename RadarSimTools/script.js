@@ -51,8 +51,12 @@ class ViewTools
     // zoom amount
     this.scale = 1;
 
-    // save the frame interval
+    // save the frame interval in ms
     this.fi=frameInterval;
+  }
+  FrameIntervalInSeconds()
+  {
+    return this.fi/1000;
   }
   // convert coordinates
   toScreenX(xTrue)
