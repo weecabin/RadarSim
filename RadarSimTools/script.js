@@ -389,7 +389,10 @@ class MovingVector
     this.breadCrumbs=[];
     this.alt=30000;
     this.targetAlt=30000;
+    this.colorid=null;
+    this.color="black"
     this.colors=["black"]; // default
+    //this.BlinkColor();
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
   }
@@ -407,6 +410,32 @@ class MovingVector
     "View: "+JSON.stringify(this.view);
     return ret;
   }
+  ColorLoop()
+  {
+    try
+    {
+      if(!this.ContainsColor("green"))return;
+      if (this.color=="green")
+        this.color=this.colors[this.colors.length-1];
+      else
+        this.color="green";
+    }
+    catch(err)
+    {
+      AddStatus("ColorLoop err="+err);
+    }
+  }
+  BlinkColor()
+  {
+    this.colorid=setInterval(this.ColorLoop.bind(this),1000);
+  }
+  GetColor()
+  {
+    if (!this.ContainsColor("green"))
+      return this.drawObject.color;
+    else
+      return this.color;
+  }
   ContainsColor(color)
   {
     return this.colors.indexOf(color)!=-1;
@@ -416,12 +445,14 @@ class MovingVector
   {
     if (this.colors.indexOf(color)!=-1)
       return;
+    if (color=="green")this.BlinkColor();
     this.colors.push(color);
     this.colors=this.colors.sort();
     this.drawObject.color=this.colors[this.colors.length-1];
   }
   ClearColor(color="all")
   {
+    if (color=="all" || color=="green")clearInterval(this.colorid);
     if (color=="all")
     {
       this.colors=["black"];
@@ -487,7 +518,7 @@ class MovingVector
       break;
       }
     }
-    ctx.strokeStyle=this.drawObject.color;
+    ctx.strokeStyle=this.GetColor();
     ctx.stroke();
   }
 

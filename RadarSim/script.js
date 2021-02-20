@@ -331,7 +331,10 @@ function onTouchMove(event)
       //AddStatus("setting color green");
       let green = Objs.filter(x=>x.ContainsColor("green"));
       for (let x of green)
-        x.ClearColor("green");
+      {
+        if (x != dragmv)
+          x.ClearColor("green");
+      }
       dragmv.SetColor("green");
       dragto = [touch0X, touch0Y]
     }
@@ -636,7 +639,6 @@ try
       }
       for (let i=0;i<Objs.length-1;i++)
       {
-
         for (let j=i+1;j<Objs.length;j++)
         {
           if (Math.abs(Objs[i].alt-Objs[j].alt)<1000)
@@ -689,6 +691,10 @@ try
           {
             mv.CancelSlew();
             mv.vector.SetDirection(0);
+            if (Math.abs(mvy-r1y)<2)
+              mv.ypos=r1y;
+            else 
+              mv.ypos=r2y;
             mv.tag="ongs";
             mv.SetColor("silver");
           }
