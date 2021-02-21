@@ -497,6 +497,7 @@ function AddPlanes()
       sides.push("bottom");
     let rate = get("insertrate").value;
     var id2 = setInterval(addPlanes, rate*1000);
+    let rd=Number(get("rangedelta").value)*10/vt.scale;
     function addPlanes()
     {
       if (button.innerHTML!="Stop") 
@@ -516,7 +517,15 @@ function AddPlanes()
           var unitv = new Vector(midx-xmin,midy-randy).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
-          if(++side>=sides.length)side=0;
+          if(++side>=sides.length)
+          {
+            side=0;
+            xmin-=rd;
+            ymin-=rd;
+            xmax+=rd;
+            ymax+=rd;
+            //AddStatus(xmin);
+          }
         break;
 
         case "top":
@@ -524,7 +533,15 @@ function AddPlanes()
           var unitv = new Vector(midx-randx,midy-ymin).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
-          if(++side>=sides.length)side=0;
+          if(++side>=sides.length)
+          {
+            side=0;
+            xmin-=rd;
+            ymin-=rd;
+            xmax+=rd;
+            ymax+=rd;
+            //AddStatus(ymin);
+          }
         break;
 
         case "right":
@@ -532,7 +549,15 @@ function AddPlanes()
           var unitv = new Vector(midx-xmax,midy-randy).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
-          if(++side>=sides.length)side=0;
+          if(++side>=sides.length)
+          {
+            side=0;
+            xmin-=rd;
+            ymin-=rd;
+            xmax+=rd;
+            ymax+=rd;
+            //AddStatus(xmax);
+          }
         break;
 
         case "bottom":
@@ -540,7 +565,15 @@ function AddPlanes()
           var unitv = new Vector(midx-randx,midy-ymax).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
-          if(++side>=sides.length)side=0;
+          if(++side>=sides.length)
+          {
+            side=0;
+            xmin-=rd;
+            ymin-=rd;
+            xmax+=rd;
+            ymax+=rd;
+            //AddStatus(ymax);
+          }
         break;
       }
     }
