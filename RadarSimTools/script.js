@@ -464,14 +464,23 @@ class MovingVector
     this.colors.splice(i,1);
     this.drawObject.color=this.colors[this.colors.length-1];
   }
+
+  SetSpeed(speed)
+  {
+    let vlen=VectorLength(speed,this.vt.FrameIntervalInSeconds(),10);
+    this.vector.SetLength(vlen);
+  }
+
   SetAltitude(alt)
   {
     this.targetAlt=alt;
   }
+
   CancelSlew()
   {
     this.turnDeltaAngle=0;
   }
+
   SlewTo(vector)
   {
     //AddStatus("Entering SlewTo(vector)");
@@ -481,6 +490,7 @@ class MovingVector
     this.turnTargetDirection=vector.GetDirection();
     //AddStatus("Exiting SlewTo(vector)");
   }
+
   // drawArray = [{move:"line"/"move"/"stroke",dx:1,dy:1}, ...]
   DrawPath(ctx,drawArray,rotate=0)
   {

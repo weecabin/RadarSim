@@ -176,8 +176,11 @@ function SetSpeed(speed)
     let mv = Objs.filter(x=>x.ContainsColor("green"));
     if (mv.length==1)
     {
+      /*
       let currentSpeed= MvSpeed(mv[0],vt.fi/1000,10);
       mv[0].vector.ScaleMe(speed/currentSpeed);
+      */
+      mv[0].SetSpeed(speed);
     }
   }
 }
@@ -479,7 +482,7 @@ function AddPlanes()
     let xmax = vt.toTrueX(canvas.width);
     let side=0;
     let speed=Number(get("speed").value);
-    let vlen=VectorLength(150,vt.FrameIntervalInSeconds(),10)*speed;
+    let vlen=VectorLength(speed,vt.FrameIntervalInSeconds(),10);
     button.innerHTML="Stop";
     let midx = runway1.x;
     let midy = runway1.y
@@ -558,8 +561,8 @@ function AddPlane()
   let plane={type:"plane",length:15,width:12,color:"black",
                drag:0,gravity:0};
   // VectorLength(targetMPH,frameInterval,pixelsPerMile)
-  let vlen=VectorLength(150,vt.FrameIntervalInSeconds(),10)*
-           Number(get("speed").value);
+  let speed = Number(get("speed").value)
+  let vlen=VectorLength(speed,vt.FrameIntervalInSeconds(),10);
   //AddStatus("vector length="+vlen);
   let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
   movingVector.vector.SetDirection(45);
@@ -658,8 +661,6 @@ try
         }
       }
       // check for intercepts
-      // set speed while we're at it
-      // further away 
       for (let i=0;i<Objs.length;i++)
       {
         let mv = Objs[i];
@@ -680,7 +681,7 @@ try
             Objs.splice(i,1);
           }
           if (dist1<120)
-            mv.speedMult=1;
+            mv.SetSpeed(150);
         }
         else
         {
@@ -698,14 +699,6 @@ try
             mv.tag="ongs";
             mv.SetColor("silver");
           }
-          if (dist1<200)
-            mv.speedMult=1.333;
-          else if (dist1<400)
-            mv.speedMult=1.6;
-          else if (dist1<700)
-            mv.speedMult=2;
-          else
-            mv.speedMult=3;
         }
       }
       //AddStatus("Clear, then draw everything");
