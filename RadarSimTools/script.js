@@ -599,7 +599,7 @@ class MovingVector
         let heading = FixHeading(Math.round(this.vector.GetDirection()+90));
         ctx.fillStyle="black";
         ctx.textAlign = "center";
-        ctx.fillText(speed+" "+heading+
+        ctx.fillText(heading+" "+speed+
                      " FL"+Math.round(this.alt/100),vt.toScreenX(this.xpos), 
                      vt.toScreenY(this.ypos-10/vt.scale));
       }
