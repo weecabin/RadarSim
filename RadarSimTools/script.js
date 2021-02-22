@@ -53,6 +53,7 @@ class ViewTools
 
     // save the frame interval in ms
     this.fi=frameInterval;
+    this.vs=2000;
   }
   FrameIntervalInSeconds()
   {
@@ -108,9 +109,6 @@ function MvSpeed(movingVector,frameRate,pixelsPerMile)
   // miles/s = miles/frame / s/frame
   let milesPerS = milesPerFrame/frameRate;
   let ret = milesPerS*3600;
-  //AddStatus("ret = "+ret);
-  ret *= movingVector.speedMult;
-  //AddStatus("speedMult,ret = "+movingVector.speedMult+","+ret);
   return ret;
 }
 /*************************************************************
@@ -385,28 +383,34 @@ class MovingVector
     this.turnTargetDirection=this.turnDeltaAngle=0;
     this.vt=view;
     this.tag=tag;
-    this.speedMult=1;
     this.breadCrumbs=[];
     this.alt=30000;
     this.targetAlt=30000;
     this.colorid=null;
     this.color="black"
     this.colors=["black"]; // default
+    this.targetSpeed=undefined;
+    this.deltaSpeed=0;
     //this.BlinkColor();
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
   }
   Stats()
   {
-    let headingTarget="";
+    let headingTargetStr="";
     if (this.turnDeltaAngle!=0)
     {
-      headingTarget=FixHeading(this.turnTargetDirection+90);
+      let headingTarget=Math.round(FixHeading(this.turnTargetDirection+90));
+      headingTargetStr=">"+headingTarget;
     }
-    return "Hdg:"+this.GetHeading()+">"+headingTarget+
+    let altTargetStr="";
+    if (this.alt!=this.targetAlt)
+    {
+      altTargetStr=">"+Math.round(this.targetAlt/100);
+    }
+    return "Hdg:"+this.GetHeading()+headingTargetStr+
            " "+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(0)+"kts"+
-            " FL"+(this.alt/100).toFixed(0)+
-            ">"+(this.targetAlt/100).toFixed(0);
+            " FL"+(this.alt/100).toFixed(0)+altTargetStr;
   }
   Snapshot()
   {
@@ -419,7 +423,7 @@ class MovingVector
   }
   GetHeading()
   {
-    return FixHeading(Math.round(this.vector.GetDirection()+90));
+    return Math.round(FixHeading(this.vector.GetDirection()+90));
   }
   ColorLoop()
   {
@@ -474,6 +478,11 @@ class MovingVector
       return;
     this.colors.splice(i,1);
     this.drawObject.color=this.colors[this.colors.length-1];
+  }
+
+  GetSpeed()
+  {
+    return MvSpeed(this,vt.fi,10);
   }
 
   SetSpeed(speed)
@@ -615,7 +624,7 @@ class MovingVector
       
     if (this.alt != this.targetAlt)
     {
-      let deltaAlt = 1;
+      let deltaAlt = vt.FrameIntervalInSeconds()*vt.vs/60;
       if (this.targetAlt<this.alt)deltaAlt*=-1;
       this.alt+=deltaAlt;
       if (Math.abs(this.alt-this.targetAlt)<=deltaAlt)
@@ -638,8 +647,8 @@ class MovingVector
         this.vector=this.vector.ProjectOn(nextVector);
       }
     }
-    this.xpos+=this.vector.x*this.speedMult;
-    this.ypos+=this.vector.y*this.speedMult;
+    this.xpos+=this.vector.x;
+    this.ypos+=this.vector.y;
     //AddStatus("Exiting Move");
     }
     catch(err)

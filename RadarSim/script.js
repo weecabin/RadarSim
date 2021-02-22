@@ -82,6 +82,7 @@ function DropDown(btn)
   else
   {
     CloseDropDown(btn);
+    vt.vs=get("vs").value;
   }
 }
 
