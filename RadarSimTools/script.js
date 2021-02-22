@@ -398,8 +398,10 @@ class MovingVector
   }
   Stats()
   {
-    return "Speed="+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(1)+
-            " Alt="+this.alt+">"+this.targetAlt;
+    return "Speed="+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(0)+
+            " Heading="+this.GetHeading()+
+            " FL"+(this.alt/100).toFixed(0)+
+            ">"+(this.targetAlt/100).toFixed(0);
   }
   Snapshot()
   {
@@ -409,6 +411,10 @@ class MovingVector
     "DrawObj: "+JSON.stringify(this.drawObject)+"\n"+
     "View: "+JSON.stringify(this.view);
     return ret;
+  }
+  GetHeading()
+  {
+    return FixHeading(Math.round(this.vector.GetDirection()+90));
   }
   ColorLoop()
   {

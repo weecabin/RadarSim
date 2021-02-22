@@ -421,7 +421,7 @@ function onTouchEnd(event)
     let touchY = prevTouches[0].pageY-canvasRect.top;
     let tempmv = ClosestPlane(vt.toTrueX(touchX),vt.toTrueY(touchY));
     tempmv.SetColor("green");
-    get("debug01").innerHTML= tempmv.Stats();
+    get("debug02").innerHTML= tempmv.Stats();
     singleTouch = false;
     return;
   }
@@ -734,6 +734,10 @@ try
           }
         }
       }
+      // update the selected plane stats
+      let selmv = Objs.filter(x=>x.ContainsColor("green"))
+      if (selmv!=undefined && selmv.length==1)
+        get("debug02").innerHTML= selmv[0].Stats();
       //AddStatus("Clear, then draw everything");
       redrawCanvas();
       // draw the drag vector if currently dragging
@@ -753,7 +757,7 @@ try
                     "  Speed="+(MvSpeed(dragmv,vt.fi/1000,10)).toFixed(1)+
                     "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
       }
-      get("debug02").innerHTML=Objs.length+" Planes";
+      get("debug03").innerHTML=Objs.length+" Planes";
       // draw all the planes
       for (let mv of Objs)
       {
