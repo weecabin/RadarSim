@@ -398,8 +398,13 @@ class MovingVector
   }
   Stats()
   {
-    return "Speed="+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(0)+
-            " Heading="+this.GetHeading()+
+    let headingTarget="";
+    if (this.turnDeltaAngle!=0)
+    {
+      headingTarget=FixHeading(this.turnTargetDirection+90);
+    }
+    return "Hdg:"+this.GetHeading()+">"+headingTarget+
+           " "+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(0)+"kts"+
             " FL"+(this.alt/100).toFixed(0)+
             ">"+(this.targetAlt/100).toFixed(0);
   }
@@ -494,6 +499,7 @@ class MovingVector
     let slewRate=this.vt.fi/333.3;
     this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
     this.turnTargetDirection=vector.GetDirection();
+    AddStatus(this.turnTargetDirection);
     //AddStatus("Exiting SlewTo(vector)");
   }
 

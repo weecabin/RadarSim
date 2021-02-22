@@ -150,11 +150,13 @@ function Debug(obj)
   if (obj.innerHTML=="Debug On")
   {
     obj.innerHTML="Debug off"
+    get("status").style.display="block"
     debugMode=true;
   }
   else
   {
     obj.innerHTML="Debug On"
+    get("status").style.display=""
     debugMode=false;
   }
 }
@@ -734,12 +736,15 @@ try
           }
         }
       }
+
       // update the selected plane stats
       let selmv = Objs.filter(x=>x.ContainsColor("green"))
       if (selmv!=undefined && selmv.length==1)
         get("debug02").innerHTML= selmv[0].Stats();
+
       //AddStatus("Clear, then draw everything");
       redrawCanvas();
+
       // draw the drag vector if currently dragging
       if (dragmv!=undefined && dragmv.tag=="drag")
       {
@@ -751,13 +756,13 @@ try
         drawLine(x0,y0,x1,y1);
         let v = new Vector(x1-x0,y1-y0);
         let heading = FixHeading(Math.round((v.GetDirection()+90)/10)*10);
-        get("debug01").innerHTML="Assigned Heading = "+
-                    heading+
-                    // MvSpeed(movingVector,frameRate,pixelsPerMile)
-                    "  Speed="+(MvSpeed(dragmv,vt.fi/1000,10)).toFixed(1)+
-                    "  Dist="+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1); 
+        get("debug03").innerHTML="Hdg:"+ heading+
+                    " "+(MvSpeed(dragmv,vt.fi/1000,10)).toFixed(0)+"kts"+
+                    " "+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1)+"mi"; 
       }
-      get("debug03").innerHTML=Objs.length+" Planes";
+      else
+        get("debug03").innerHTML="...";
+      get("debug01").innerHTML=Objs.length+" Plane(s)";
       // draw all the planes
       for (let mv of Objs)
       {
