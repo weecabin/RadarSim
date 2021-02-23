@@ -410,9 +410,6 @@ function onTouchEnd(event)
 {
   try
   {
-  //AddStatus("in onTouchEnd");
-
-
   if (Objs.length == 0)return;
   if ((dragto==undefined || dragmv==undefined) && singleTouch) 
   {
@@ -501,6 +498,8 @@ function AddPlanes()
     let rate = get("insertrate").value;
     var id2 = setInterval(addPlanes, rate*1000);
     let rd=Number(get("rangedelta").value)*10/vt.scale;
+    let rdalt = (Number(get("rangedelta").value)/10)*3000;
+    let altOffset = Number(get("altitude").value);
     function addPlanes()
     {
       if (button.innerHTML!="Stop") 
@@ -516,7 +515,10 @@ function AddPlanes()
       switch (sides[side])
       {
         case "left":
-          movingVector = new MovingVector(vlen,0,xmin,randy,plane,vt);
+          var distToAp = Math.hypot(midx-xmin,midy-randy)/10;
+          var newAlt = Math.round((distToAp*300+altOffset)/1000)*1000;
+          if (newAlt>40000)newAlt=40000;
+          movingVector = new MovingVector(vlen,0,xmin,randy,plane,vt,newAlt);
           var unitv = new Vector(midx-xmin,midy-randy).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
@@ -532,7 +534,10 @@ function AddPlanes()
         break;
 
         case "top":
-          movingVector = new MovingVector(vlen,0,randx,ymin,plane,vt);
+          var distToAp = Math.hypot(midx-randx,midy-ymin)/10;
+          var newAlt = Math.round((distToAp*300+altOffset)/1000)*1000;
+          if (newAlt>40000)newAlt=40000;
+          movingVector = new MovingVector(vlen,0,randx,ymin,plane,vt,newAlt);
           var unitv = new Vector(midx-randx,midy-ymin).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
@@ -543,12 +548,16 @@ function AddPlanes()
             ymin-=rd;
             xmax+=rd;
             ymax+=rd;
+            alt+=rdalt;
             //AddStatus(ymin);
           }
         break;
 
         case "right":
-          movingVector = new MovingVector(vlen,0,xmax,randy,plane,vt);
+          var distToAp = Math.hypot(midx-xmax,midy-randy)/10;
+          var newAlt = Math.round((distToAp*300+altOffset)/1000)*1000;
+          if (newAlt>40000)newAlt=40000;
+          movingVector = new MovingVector(vlen,0,xmax,randy,plane,vt,newAlt);
           var unitv = new Vector(midx-xmax,midy-randy).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
@@ -559,12 +568,16 @@ function AddPlanes()
             ymin-=rd;
             xmax+=rd;
             ymax+=rd;
+            alt+=rdalt;
             //AddStatus(xmax);
           }
         break;
 
         case "bottom":
-          movingVector = new MovingVector(vlen,0,randx,ymax,plane,vt);
+          var distToAp = Math.hypot(midx-randx,midy-ymax)/10;
+          var newAlt = Math.round((distToAp*300+altOffset)/1000)*1000;
+          if (newAlt>40000)newAlt=40000;
+          movingVector = new MovingVector(vlen,0,randx,ymax,plane,vt,newAlt);
           var unitv = new Vector(midx-randx,midy-ymax).Unit();
           movingVector.vector.SetDirection(unitv.GetDirection());
           Objs.push(movingVector);
@@ -575,6 +588,7 @@ function AddPlanes()
             ymin-=rd;
             xmax+=rd;
             ymax+=rd;
+            alt+=rdalt;
             //AddStatus(ymax);
           }
         break;
@@ -654,6 +668,7 @@ try
   var id = setInterval(frame, vt.fi);
   function frame() 
   {
+    //var t0 = performance.now();
     try
     {
     //AddStatus("in Frame");
@@ -770,6 +785,8 @@ try
         mv.Draw(context);
       }
     }
+    //var t1=performance.now();
+    //get("debug04").innerHTML=(t1-t0).toFixed(1)+"ms";
     }
     catch(err)
     {

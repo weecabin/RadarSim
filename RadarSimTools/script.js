@@ -278,17 +278,10 @@ class Vector
 
   Rotate(degrees)
   {
-    //AddStatus("Entering Rotate");
-    //AddStatus("Rotate("+degrees+")");
     let retVector=new Vector(this.x,this.y);
-    //AddStatus("new Vector(this.x,this.y)="+JSON.stringify(retVector));
     let thisdir = this.GetDirection();
-    //AddStatus("this direction="+thisdir);
     let newdir = thisdir+degrees;
-    //AddStatus("new direction="+newdir);
     retVector.SetDirection(newdir);
-    //AddStatus("retVector.SetDirection(newdir)="+JSON.stringify(retVector));
-    //AddStatus("Exiting Rotate");
     return retVector;
   }
 
@@ -325,7 +318,6 @@ class Vector
 
   AngleBetween(other) 
   {
-    //AddStatus("direction: other,this="+other.GetDirection()+","+ this.GetDirection());
     let between=(other.GetDirection()-this.GetDirection());
     if (between<0)between+=360;
     if (between>180)between=between-360;
@@ -374,7 +366,8 @@ const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0};
 const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0};
 class MovingVector
 {
-  constructor(xlen,ylen,startx,starty,drawObject=circleObj,view=null,tag="none")
+  constructor(xlen,ylen,startx,starty,drawObject=circleObj,
+              view=null,altitude=15000,tag="none")
   {
     this.vector= new Vector(xlen,ylen);
     this.xpos=startx;
@@ -384,8 +377,8 @@ class MovingVector
     this.vt=view;
     this.tag=tag;
     this.breadCrumbs=[];
-    this.alt=30000;
-    this.targetAlt=30000;
+    this.alt=altitude;
+    this.targetAlt=altitude;
     this.colorid=null;
     this.color="black"
     this.colors=["black"]; // default
@@ -466,7 +459,11 @@ class MovingVector
   {
     if (this.colors.indexOf(color)!=-1)
       return;
-    if (color=="green")this.BlinkColor();
+    if (color=="green")
+    {
+      this.BlinkColor();
+      this.color="green";
+    }
     this.colors.push(color);
     this.colors=this.colors.sort();
     this.drawObject.color=this.colors[this.colors.length-1];
@@ -519,7 +516,7 @@ class MovingVector
     let slewRate=this.vt.fi/333.3;
     this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
     this.turnTargetDirection=vector.GetDirection();
-    AddStatus(this.turnTargetDirection);
+    //AddStatus(this.turnTargetDirection);
     //AddStatus("Exiting SlewTo(vector)");
   }
 
