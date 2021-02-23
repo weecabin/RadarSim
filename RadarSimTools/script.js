@@ -57,7 +57,7 @@ class ViewTools
   }
   FrameIntervalInSeconds()
   {
-    return this.fi/1000;
+    return Number(this.fi/1000);
   }
   // convert coordinates
   toScreenX(xTrue)
@@ -390,7 +390,7 @@ class MovingVector
     this.color="black"
     this.colors=["black"]; // default
     this.targetSpeed=undefined;
-    this.deltaSpeed=0;
+    this.deltaSpeed=.5;
     //this.BlinkColor();
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
@@ -408,8 +408,14 @@ class MovingVector
     {
       altTargetStr=">"+Math.round(this.targetAlt/100);
     }
+    let speedTargetStr="";
+    if (this.targetSpeed!=undefined)
+    {
+       speedTargetStr=">"+this.targetSpeed;
+    }
     return "Hdg:"+this.GetHeading()+headingTargetStr+
-           " "+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(0)+"kts"+
+           " "+(MvSpeed(this,this.vt.fi/1000,10)).toFixed(0)+
+                "kts"+speedTargetStr+
             " FL"+(this.alt/100).toFixed(0)+altTargetStr;
   }
   Snapshot()
@@ -482,13 +488,18 @@ class MovingVector
 
   GetSpeed()
   {
-    return MvSpeed(this,vt.fi,10);
+    return MvSpeed(this,this.vt.fi/1000,10);
   }
 
   SetSpeed(speed)
   {
-    let vlen=VectorLength(speed,this.vt.FrameIntervalInSeconds(),10);
-    this.vector.SetLength(vlen);
+    let currentSpeed= MvSpeed(this,this.vt.fi/1000,10);
+    this.vector.ScaleMe(speed/currentSpeed);
+  }
+
+  SlewToSpeed(speed)
+  {
+    this.targetSpeed=speed;
   }
 
   SetAltitude(alt)
@@ -646,6 +657,21 @@ class MovingVector
         //AddStatus("Next Vector...\n"+JSON.stringify(nextVector));
         this.vector=this.vector.ProjectOn(nextVector);
       }
+    }
+    if (this.targetSpeed!=undefined)
+    {
+      let currentSpeed = this.GetSpeed();
+      let ds = this.deltaSpeed;
+      if (currentSpeed > this.targetSpeed)
+        ds*=-1;
+      let newSpeed=currentSpeed+ds;
+      if (Math.abs(newSpeed-this.targetSpeed)<this.deltaSpeed)
+      {
+        this.SetSpeed(this.targetSpeed);
+        this.targetSpeed=undefined;
+      }
+      else
+        this.SetSpeed(newSpeed);
     }
     this.xpos+=this.vector.x;
     this.ypos+=this.vector.y;

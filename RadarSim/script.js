@@ -183,7 +183,7 @@ function SetSpeed(speed)
       let currentSpeed= MvSpeed(mv[0],vt.fi/1000,10);
       mv[0].vector.ScaleMe(speed/currentSpeed);
       */
-      mv[0].SetSpeed(speed);
+      mv[0].SlewToSpeed(speed);
     }
   }
 }
