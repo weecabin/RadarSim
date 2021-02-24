@@ -240,8 +240,10 @@ function drawLine(x0, y0, x1, y1)
   context.stroke();
 }
 
-// touch functions
+// touch functions and variables
 const prevTouches = [null, null]; // up to 2 touches
+var tapTime = [null,null];
+const tapDebounce=100;
 let singleTouch = false;
 let doubleTouch = false;
 var dragmv = undefined; // dragging from this moving vector object 
@@ -251,21 +253,21 @@ function onTouchStart(event)
 {
   try
   {
-  //AddStatus("in Touch Start, with "+Objs.length+" planes");
-  if (event.touches.length == 1) 
-  {
-    singleTouch = true;
-    doubleTouch = false;
-    dragmv=undefined;
-  }
-  if (event.touches.length >= 2) 
-  {
-    singleTouch = false;
-    doubleTouch = true;
-  }
-  // store the last touches
-  prevTouches[0] = event.touches[0];
-  prevTouches[1] = event.touches[1];
+    //AddStatus("in Touch Start, with "+Objs.length+" planes");
+    tapTime[0]=performance.now();
+    if (event.touches.length == 1) 
+    {
+      prevTouches[0] = event.touches[0];
+      singleTouch = true;
+      doubleTouch = false;
+      dragmv=undefined;
+    }
+    if (event.touches.length >= 2) 
+    {
+      prevTouches[1] = event.touches[1];
+      singleTouch = false;
+      doubleTouch = true;
+    }
   }
   catch (err)
   {
@@ -297,8 +299,6 @@ function onTouchMove(event)
 {
   try
   {
-  //AddStatus("in onTouchMove with "+Objs.length+" planes");
-
   // get first touch coordinates
   const touch0X = event.touches[0].pageX;
   const touch0Y = event.touches[0].pageY-canvasRect.top;
@@ -334,6 +334,9 @@ function onTouchMove(event)
     } 
     else  
     {
+      tapTime[1]=performance.now();
+      get("debug04").innerHTML=tapTime[1]-tapTime[0];
+      if ((tapTime[1]-tapTime[0])<tapDebounce)return;
       //AddStatus("not sketching");
       if (dragmv == undefined || dragmv.tag!="drag")
         dragmv=ClosestPlane(scaledX, scaledY);
@@ -433,6 +436,7 @@ function onTouchEnd(event)
   }
   singleTouch = false;
   doubleTouch = false;
+  if ((tapTime[1]-tapTime[0])<tapDebounce)return;
   if (dragmv==undefined || dragmv.tag!="drag")return;
   //AddStatus(dragmv.Snapshot());
   let dragVector = new Vector(vt.toTrueX(dragto[0]) - dragmv.xpos,
