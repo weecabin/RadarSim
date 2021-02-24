@@ -335,7 +335,7 @@ function onTouchMove(event)
     else  
     {
       tapTime[1]=performance.now();
-      get("debug04").innerHTML=tapTime[1]-tapTime[0];
+      //get("debug04").innerHTML=tapTime[1]-tapTime[0];
       if ((tapTime[1]-tapTime[0])<tapDebounce)return;
       //AddStatus("not sketching");
       if (dragmv == undefined || dragmv.tag!="drag")
