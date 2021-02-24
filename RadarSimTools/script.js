@@ -695,7 +695,7 @@ class MovingVector
     //AddStatus("Exiting Move");
     if (this.hold=="leg")
     {
-      if (Math.abs(this.ypos-this.holdBeginLeg)>20)
+      if (Math.abs(this.ypos-this.holdBeginLeg)>100)
       {
         if (this.GetHeading()!=180)
           this.SlewTo(new Vector(0,1),true);
