@@ -750,12 +750,15 @@ try
         else
         {
           if (((dist1<300) || (dist2<300)) && 
-              ((direction<31) || (direction>329)) &&
-              ((Math.abs(mvy-r1y)<2) || (Math.abs(mvy-r2y)<2))
-             )
+              (((direction<31) || (direction>329)) ||
+               ((direction<211) && (direction>149))) &&
+              ((Math.abs(mvy-r1y)<2) || (Math.abs(mvy-r2y)<2)))
           {
             mv.CancelSlew();
-            mv.vector.SetDirection(0);
+            if ((direction<211) && (direction>149))
+              mv.vector.SetDirection(180);
+            else
+              mv.vector.SetDirection(0);
             if (Math.abs(mvy-r1y)<2)
               mv.ypos=r1y;
             else 
