@@ -384,6 +384,8 @@ class MovingVector
     this.colors=["black"]; // default
     this.targetSpeed=undefined;
     this.deltaSpeed=.5;
+    this.hold="no";
+    this.holdBeginLeg=-1;
     //this.BlinkColor();
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
@@ -419,6 +421,11 @@ class MovingVector
     "DrawObj: "+JSON.stringify(this.drawObject)+"\n"+
     "View: "+JSON.stringify(this.view);
     return ret;
+  }
+  Hold()
+  {
+    this.hold="initialTurn";
+    this.SlewTo(new Vector(0,-1),true);
   }
   GetHeading()
   {
@@ -509,13 +516,18 @@ class MovingVector
     this.turnDeltaAngle=0;
   }
 
-  SlewTo(vector)
+  SlewTo(vector,inHold=false)
   {
     //AddStatus("Entering SlewTo(vector)");
     let angleBetween=this.vector.AngleBetween(vector);
     let slewRate=this.vt.fi/333.3;
-    this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
+    if(!inHold || (inHold && this.hold=="initialTurn"))
+      this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
+    else
+        this.turnDeltaAngle=-slewRate;
     this.turnTargetDirection=vector.GetDirection();
+    if (!inHold)
+      this.hold="no"; // breaks a hold if in one
     //AddStatus(this.turnTargetDirection);
     //AddStatus("Exiting SlewTo(vector)");
   }
@@ -610,6 +622,9 @@ class MovingVector
         ctx.fillText(heading+" "+speed+
                      " FL"+Math.round(this.alt/100),vt.toScreenX(this.xpos), 
                      vt.toScreenY(this.ypos-10/vt.scale));
+        if (this.hold!="no")
+           ctx.fillText("Hold",vt.toScreenX(this.xpos), 
+                     vt.toScreenY(this.ypos+15/vt.scale));
       }
       break;
     }
@@ -647,6 +662,11 @@ class MovingVector
         this.vector=this.vector.ProjectOn(
                     this.vector.Rotate(deltaAngle));
         this.turnDeltaAngle=0;
+        if (this.hold=="turn" || this.hold=="initialTurn")
+        {
+          this.holdBeginLeg=this.ypos;
+          this.hold="leg";
+        }
       }
       else
       {
@@ -673,6 +693,17 @@ class MovingVector
     this.xpos+=this.vector.x;
     this.ypos+=this.vector.y;
     //AddStatus("Exiting Move");
+    if (this.hold=="leg")
+    {
+      if (Math.abs(this.ypos-this.holdBeginLeg)>20)
+      {
+        if (this.GetHeading()!=180)
+          this.SlewTo(new Vector(0,1),true);
+        else 
+          this.SlewTo(new Vector(0,-1),true);
+        this.hold="turn";
+      }
+    }
     }
     catch(err)
     {

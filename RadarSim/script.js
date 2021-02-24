@@ -168,7 +168,12 @@ function SetAltitude(obj)
   {
     let mv = Objs.filter(x=>x.ContainsColor("green"));
     if (mv.length==1)
-      mv[0].SetAltitude(Number(obj.innerHTML));
+    {
+      if (obj.innerHTML=="Hold")
+        mv[0].Hold();
+      else
+        mv[0].SetAltitude(Number(obj.innerHTML));
+    }
   }
 }
 
@@ -423,6 +428,7 @@ function onTouchEnd(event)
     tempmv.SetColor("green");
     get("debug02").innerHTML= tempmv.Stats();
     singleTouch = false;
+    CloseAllDropDowns();
     return;
   }
   singleTouch = false;
@@ -434,7 +440,8 @@ function onTouchEnd(event)
   let direction = Math.round(dragVector.GetDirection()/10)*10;
   dragVector.SetDirection(direction);
   // allow the user to cancel the vector by moving back to the plane
-  if (dragVector.GetLength() < (25 / vt.scale)) 
+  //get("debug05").innerHTML=dragVector.GetLength()*vt.scale;
+  if ((dragVector.GetLength()*vt.scale)< 50) 
   {
     dragmv.tag = "none";
     return;
@@ -444,6 +451,7 @@ function onTouchEnd(event)
   else
     dragmv.vector.SetDirection(dragVector.GetDirection());
   dragmv.tag="none";
+  if (get("altonvector").checked)DropDown(get("altbtn"));
   }
   catch(err)
   {
@@ -771,10 +779,17 @@ try
         let y1=dragto[1];
         drawLine(x0,y0,x1,y1);
         let v = new Vector(x1-x0,y1-y0);
-        let heading = FixHeading(Math.round((v.GetDirection()+90)/10)*10);
-        get("debug03").innerHTML="Hdg:"+ heading+
+        let screenDist = Math.hypot(x1-x0,y1-y0);
+        //get("debug04").innerHTML=screenDist;
+        if (screenDist<50)
+          get("debug03").innerHTML="CANCEL";
+        else
+        {
+          let heading = FixHeading(Math.round((v.GetDirection()+90)/10)*10);
+          get("debug03").innerHTML="Hdg:"+ heading+
                     " "+(MvSpeed(dragmv,vt.fi/1000,10)).toFixed(0)+"kts"+
-                    " "+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1)+"mi"; 
+                    " "+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1)+"mi";
+        }
       }
       else
         get("debug03").innerHTML="...";
