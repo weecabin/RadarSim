@@ -264,6 +264,7 @@ function onTouchStart(event)
     }
     if (event.touches.length >= 2) 
     {
+      prevTouches[0] = event.touches[0];
       prevTouches[1] = event.touches[1];
       singleTouch = false;
       doubleTouch = true;
