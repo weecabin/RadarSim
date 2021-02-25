@@ -27,6 +27,7 @@ function setup()
   canvas.addEventListener('touchend', onTouchEnd);
   canvas.addEventListener('touchcancel', onTouchEnd);
   canvas.addEventListener('touchmove', onTouchMove);
+  
   context.font = "15px Georgia";
   context.fillStyle="black";
   context.textAlign = "center";
@@ -56,6 +57,18 @@ function CloseAllDropDowns(skip=null)
     if (dd!=skip)
       CloseDropDown(dd);
   }
+}
+
+function DropDownIsOpen()
+{
+  let menu = document.getElementById("main-menu");
+  let dropdowns = menu.querySelectorAll(".menu-content");
+  for (let dd of dropdowns)
+  {
+    if (dd.style.display!="")
+      return true;
+  }
+  return false;
 }
 
 function CloseDropDown(child)
@@ -422,6 +435,11 @@ function onTouchEnd(event)
   if (Objs.length == 0)return;
   if ((dragto==undefined || dragmv==undefined) && singleTouch) 
   {
+    if (DropDownIsOpen())
+    {
+      CloseAllDropDowns();
+      return;
+    }
     // this was a tap, clear previous green, and select a new one.
     let green = Objs.filter(x=>x.ContainsColor("green"));
     for (let x of green)
@@ -432,7 +450,7 @@ function onTouchEnd(event)
     tempmv.SetColor("green");
     get("debug02").innerHTML= tempmv.Stats();
     singleTouch = false;
-    CloseAllDropDowns();
+    
     return;
   }
   singleTouch = false;
