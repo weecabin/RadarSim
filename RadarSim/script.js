@@ -472,7 +472,7 @@ function onTouchEnd(event)
   if (get("radiusturn").checked)
     dragmv.SlewTo(dragVector);
   else
-    dragmv.vector.SetDirection(dragVector.GetDirection());
+    dragmv.SetHeading(dragVector.GetDirection()+90);
   dragmv.tag="none";
   if (get("altonvector").checked)DropDown(get("altbtn"));
   }

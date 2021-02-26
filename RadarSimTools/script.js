@@ -385,7 +385,9 @@ class MovingVector
     this.targetSpeed=undefined;
     this.deltaSpeed=.5;
     this.hold="no";
-    this.holdBeginLeg=-1;
+    this.holdBeginLegY=-1;
+    this.holdSouthEast=[];
+    this.holdLegLength=0;
     //this.BlinkColor();
     //AddStatus(JSON.stringify(this.drawObject));
     //AddStatus("View="+JSON.stringify(this.vt));
@@ -430,6 +432,11 @@ class MovingVector
   GetHeading()
   {
     return Math.round(FixHeading(this.vector.GetDirection()+90));
+  }
+  SetHeading(heading)
+  {
+    this.vector.SetDirection(heading-90);
+    this.CancelHold();
   }
   ColorLoop()
   {
@@ -527,12 +534,13 @@ class MovingVector
         this.turnDeltaAngle=-slewRate;
     this.turnTargetDirection=vector.GetDirection();
     if (!inHold)
-      this.hold="no"; // breaks a hold if in one
+      this.CancelHold();// breaks a hold if in one
     //AddStatus(this.turnTargetDirection);
     //AddStatus("Exiting SlewTo(vector)");
   }
 
-  // drawArray = [{move:"line"/"move"/"stroke",dx:1,dy:1}, ...]
+  // drawArray = [{action:"line"/"move",dx:1,dy:1}, ...]
+  // draws relative to the current xpos,ypos location
   DrawPath(ctx,drawArray,rotate=0)
   {
     //AddStatus("Entering DrawPath");
@@ -626,6 +634,10 @@ class MovingVector
            ctx.fillText("Hold",vt.toScreenX(this.xpos), 
                      vt.toScreenY(this.ypos+15/vt.scale));
       }
+      if (this.hold!="no")
+      {
+        this.DrawHold(ctx)
+      }
       break;
     }
     //AddStatus("Exiting Draw");
@@ -664,7 +676,11 @@ class MovingVector
         this.turnDeltaAngle=0;
         if (this.hold=="turn" || this.hold=="initialTurn")
         {
-          this.holdBeginLeg=this.ypos;
+          if (this.hold=="initialTurn")
+          {
+            this.holdSouthEast=[this.xpos,this.ypos];
+          }
+          this.holdBeginLegY=this.ypos;
           this.hold="leg";
         }
       }
@@ -695,9 +711,10 @@ class MovingVector
     //AddStatus("Exiting Move");
     if (this.hold=="leg")
     {
-      if (Math.abs(this.ypos-this.holdBeginLeg)>100)
+      if (Math.abs(this.ypos-this.holdBeginLegY)>(this.HoldLegMiles()*10))
       {
         if (this.GetHeading()!=180)
+
           this.SlewTo(new Vector(0,1),true);
         else 
           this.SlewTo(new Vector(0,-1),true);
@@ -712,6 +729,37 @@ class MovingVector
     //AddStatus("Exiting Move()");
   }
 
+  // straight legs are 1min long
+  HoldLegMiles()
+  {
+    return this.GetSpeed()/60; // miles per minute
+  }
+
+  DrawHold(ctx)
+  {
+    let mpm =   this.HoldLegMiles() // 1min leg
+    let diam = 2*mpm/Math.PI; // diameter of 2minute turn in mi 
+
+    var x1 = this.vt.toScreenX(this.holdSouthEast[0]);
+    var y1 = this.vt.toScreenY(this.holdSouthEast[1]);
+    var y2 = y1-10*mpm*vt.scale;
+    var x2 = x1-(diam*10)*vt.scale; 
+
+    let tc = (x1+x2)/2; // x center of the turn
+    let radius = Math.abs(tc-x1);
+
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x1,y2);
+    ctx.arc(tc, y2, radius, ToRadians(0), ToRadians(180),true);
+    //ctx.moveTo(x2,y2);
+    ctx.lineTo(x2,y1);
+    ctx.arc(tc, y1, radius, ToRadians(180), ToRadians(0),true);
+    ctx.stroke();
+  }
+  CancelHold()
+  {
+    this.hold="no"; 
+  }
   MovingAway(that,debug=false)
   { 
     let thisnextx=this.xpos+this.vector.x;
