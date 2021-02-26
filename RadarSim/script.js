@@ -762,8 +762,8 @@ try
             //AddStatus("Spliced");
             Objs.splice(i,1);
           }
-          if (dist1<120)
-            mv.SetSpeed(150);
+          if (dist1<120 && (Math.abs(mv.GetSpeed()-150)>1))
+            mv.SlewToSpeed(150);
         }
         else
         {
