@@ -384,8 +384,6 @@ class MovingVector
     this.colors=["black"]; // default
     this.targetSpeed=undefined;
     this.deltaSpeed=.5;
-    this.hold="no";
-    this.holdBeginLegY=-1;
     this.hp=new HoldPattern(0,0,this.GetSpeed.bind(this),this.vt);
   }
   Stats()
@@ -420,7 +418,7 @@ class MovingVector
     "View: "+JSON.stringify(this.view);
     return ret;
   }
-  Hold()
+  Hold(target)
   {
     this.SlewTo(new Vector(0,-1),true);
     this.hp.StartHold(this.xpos,this.ypos);
@@ -719,7 +717,7 @@ class MovingVector
           this.hp.SetLeg(southturn);
           break;
         }
-        this.hold="turn";
+        //this.hold="turn";
       }
     }
     }

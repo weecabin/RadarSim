@@ -141,7 +141,7 @@ function BtnClicked(btn)
     break;
 
     case "clearsketch":
-    ClearSketch();
+    ClearSketch("line");
     break;
 
     case "clearstatus":
@@ -183,7 +183,7 @@ function SetAltitude(obj)
     if (mv.length==1)
     {
       if (obj.innerHTML=="Hold")
-        mv[0].Hold();
+        mv[0].Hold(dragto);
       else
         mv[0].SetAltitude(Number(obj.innerHTML));
     }
@@ -331,7 +331,6 @@ function onTouchMove(event)
 
   if (singleTouch) 
   {
-    if (Objs.length==0)return;
     //AddStatus("SingleTouch");
     if (get("sketch").checked) 
     {
@@ -346,7 +345,7 @@ function onTouchMove(event)
       });
       drawLine(prevTouch0X, prevTouch0Y, touch0X, touch0Y);
     } 
-    else  
+    else if (Objs.length!=0)
     {
       tapTime[1]=performance.now();
       //get("debug04").innerHTML=tapTime[1]-tapTime[0];
@@ -432,25 +431,28 @@ function onTouchEnd(event)
 {
   try
   {
-  if (Objs.length == 0)return;
+  
   if ((dragto==undefined || dragmv==undefined) && singleTouch) 
   {
+    dragto=undefined;
     if (DropDownIsOpen())
     {
       CloseAllDropDowns();
       return;
     }
-    // this was a tap, clear previous green, and select a new one.
-    let green = Objs.filter(x=>x.ContainsColor("green"));
-    for (let x of green)
-      x.ClearColor("green");
     let touchX = prevTouches[0].pageX;
     let touchY = prevTouches[0].pageY-canvasRect.top;
-    let tempmv = ClosestPlane(vt.toTrueX(touchX),vt.toTrueY(touchY));
-    tempmv.SetColor("green");
-    get("debug02").innerHTML= tempmv.Stats();
+
+    if (Objs.length != 0)
+    {
+      // this was a tap, clear previous green, and select a new one.
+      let green = Objs.filter(x=>x.ContainsColor("green"));
+      for (let x of green)
+        x.ClearColor("green");
+      let tempmv = ClosestPlane(vt.toTrueX(touchX),vt.toTrueY(touchY));
+      tempmv.SetColor("green");
+    }
     singleTouch = false;
-    
     return;
   }
   singleTouch = false;
@@ -491,12 +493,17 @@ function get(id)
   return document.getElementById(id);
 }
 
-function ClearSketch(clearAll=false)
+// clears all line types passed in type
+// linetype is a comma delimited string
+// "line,rwy,hanger"
+function ClearSketch(linetype)
 {
-  for (let i=drawings.length-1;i>=0;i--)
+  for (let i = drawings.length-1;i>=0;i--)
   {
-    if (drawings[i].lbl=="line" || clearAll)
-    drawings.pop();
+    if (linetype.includes(drawings[i].lbl))
+    {
+      drawings.splice(i,1);
+    }
   }
   redrawCanvas();
 }
@@ -659,7 +666,7 @@ function StartAnimation(start)
   }
   else // start
   {
-    ClearSketch(true)
+    ClearSketch("rwy,hanger")
     Objs=[];
     runAnimate=true;
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
