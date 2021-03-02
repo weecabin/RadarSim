@@ -326,10 +326,11 @@ class Vector
   }
   
   // Functions that return boolean
-  IsSameDirection(other) 
+  IsSameDirection(other,epsilon=EPSILON) 
   {
     const dotProduct = this.Unit().Dot(other.Unit())
-    return AreEqual(dotProduct, 1)
+    get("debug05").innerHTML=dotProduct;
+    return AreEqual(dotProduct, 1, epsilon)
   }
 
   IsOppositeDirection(other) 
@@ -384,7 +385,7 @@ class MovingVector
     this.colors=["black"]; // default
     this.targetSpeed=undefined;
     this.deltaSpeed=.5;
-    this.hp=new HoldPattern(0,0,this.GetSpeed.bind(this),this.vt);
+    this.hp=new HoldPattern(0,0,this);
   }
   Stats()
   {
@@ -420,8 +421,18 @@ class MovingVector
   }
   Hold(target)
   {
-    this.SlewTo(new Vector(0,-1),true);
-    this.hp.StartHold(this.xpos,this.ypos);
+    AddStatus("Hold, target= "+JSON.stringify(target));
+    if (target!=undefined)
+    {
+      let truetarget = [vt.toTrueX(target[0]),vt.toTrueY(target[1])];
+      this.SlewTo(new Vector(truetarget[0]-this.xpos,truetarget[1]-this.ypos));
+      this.hp.SetLeg(traveling,truetarget);
+    }
+    else
+    {
+      this.SlewTo(new Vector(0,1),true);
+      this.hp.StartHold(this.xpos,this.ypos);
+    }
   }
   GetHeading()
   {
@@ -526,7 +537,7 @@ class MovingVector
     if(!this.hp.Holding() || (this.hp.Holding() && this.hp.GetLeg()==entering))
       this.turnDeltaAngle=angleBetween>0?slewRate:-slewRate;
     else
-        this.turnDeltaAngle=-slewRate;
+        this.turnDeltaAngle=slewRate;
     this.turnTargetDirection=vector.GetDirection();
   }
 
@@ -656,6 +667,7 @@ class MovingVector
       if (Math.abs(this.alt-this.targetAlt)<=deltaAlt)
         this.alt=this.targetAlt;
     }
+    get("debug06").innerHTML=(this.hp.GetLegName());
     if (this.turnDeltaAngle!=0)
     //  completed a turn
     {
@@ -670,10 +682,22 @@ class MovingVector
         // if in a hold, mark the beginning of the leg
         if (this.hp.GetLeg()!=none)
         {
-          if (this.hp.GetLeg()==entering || this.hp.GetLeg()==southturn)
-            this.hp.SetLeg(eastleg,[this.xpos,this.ypos]);
-          else
+          switch (this.hp.GetLeg())
+          {
+            case entering:
+            //AddStatus("start hold, in southturn");
+            this.hp.SetLeg(southturn,[this.xpos,this.ypos]);
+            this.SlewTo(new Vector(0,-1),true);
+            break;
+
+            case southturn:
             this.hp.SetLeg(westleg);
+            break;
+
+            case northturn:
+            this.hp.SetLeg(eastleg);
+            break;
+          }
         }
       }
       else
@@ -681,6 +705,40 @@ class MovingVector
         let nextVector = this.vector.Rotate(this.turnDeltaAngle);
         //AddStatus("Next Vector...\n"+JSON.stringify(nextVector));
         this.vector=this.vector.ProjectOn(nextVector);
+      }
+    }
+    else if (this.hp.Holding() || this.hp.GetLeg()==traveling)
+    {
+      if (this.hp.GetLeg()==traveling)
+      {
+        let target = this.hp.GetTarget();
+        let dist= Math.hypot(target.x-this.xpos,target.y-this.ypos);
+        get("debug07").innerHTML="dist="+dist.toFixed(2);
+        if (dist<.1)
+        {
+          this.Hold();
+        }
+        else
+        {
+        let temp = new Vector(target.x-this.xpos,target.y-this.ypos);
+        if (!temp.IsSameDirection(this.vector))
+          this.SlewTo(temp,true);
+        }
+      }
+      else if (this.hp.IsEndOfLeg(this.xpos,this.ypos))
+      {
+        switch (this.hp.GetLeg())
+        {
+          case eastleg:
+          this.SlewTo(new Vector(0,-1),true);
+          this.hp.SetLeg(southturn);
+          break;
+          case westleg:
+          this.SlewTo(new Vector(0,1),true);
+          this.hp.SetLeg(northturn);
+          break;
+        }
+        //this.hold="turn";
       }
     }
     if (this.targetSpeed!=undefined)
@@ -700,26 +758,7 @@ class MovingVector
     }
     this.xpos+=this.vector.x;
     this.ypos+=this.vector.y;
-    if (this.hp.Holding())
-    {
-      //AddStatus(JSON.stringify(this.hp.Legs()));
-      //if (Math.abs(this.ypos-this.holdBeginLegY)>(this.hp.LegLength()*10))
-      if (this.hp.IsEndOfLeg(this.xpos,this.ypos))
-      {
-        switch (this.hp.GetLeg())
-        {
-          case eastleg:
-          this.SlewTo(new Vector(0,1),true);
-          this.hp.SetLeg(northturn);
-          break;
-          case westleg:
-          this.SlewTo(new Vector(0,-1),true);
-          this.hp.SetLeg(southturn);
-          break;
-        }
-        //this.hold="turn";
-      }
-    }
+
     }
     catch(err)
     {
@@ -772,15 +811,18 @@ const eastleg=2;
 const northturn=3;
 const westleg=4;
 const southturn=5;
+const traveling=6;
+const legNames=["none","entering","eastleg","northturn","westleg",
+                "southturn","traveling"];
 class HoldPattern
 {
-  constructor(xpos,ypos,getSpeedCallback,viewtools,holding=false)
+  constructor(xpos,ypos,movingVector)
   {
     this.xstart=xpos;
     this.ystart=ypos;
-    this.GetSpeed=getSpeedCallback;
-    this.vt=viewtools;
-    this.holding=holding;
+    this.mv=movingVector;
+    this.vt=this.mv.vt;
+    this.holding=false;
     this.speed = null; //miles per minute
     this.diam = null; // diameter of 2minute turn in mi 
     // next 4 are the screen coords of the straight legs
@@ -831,6 +873,7 @@ class HoldPattern
   }
   StartHold(xpos,ypos)
   {
+    //AddStatus("in StartHold");
     this.xstart=Number(xpos);
     this.ystart=Number(ypos);
     this.ComputeOval();
@@ -840,9 +883,9 @@ class HoldPattern
   {
     let testx1=this.vt.toScreenX(this.xstart);
     let testy1=this.vt.toScreenY(this.ystart);
-    if (this.speed==this.GetSpeed()/60 &&
+    if (this.speed==this.mv.GetSpeed()/60 &&
         this.x1==testx1 && this.y1==testy1)return;
-    this.speed = this.GetSpeed()/60; //miles per minute
+    this.speed = this.mv.GetSpeed()/60; //miles per minute
     this.diam = 2*this.speed/Math.PI; // diameter of 2minute turn in mi 
     this.x1 = testx1;
     this.x2 = this.x1-(this.diam*10)*this.vt.scale; 
@@ -860,20 +903,30 @@ class HoldPattern
   }
   SetLeg(position,xypos)
   {
+    //AddStatus("SetLeg "+this.GetLegName(position));
     if (xypos!=undefined)
     {
       this.xstart=xypos[0];
       this.ystart=xypos[1];
     }
     this.onleg=position;
-    if (position==entering || position==none)
+    if (position==entering || position==none || position==traveling)
       this.holding=false;
     else
       this.holding=true; 
   }
   GetLeg()
   {
+    //get("debug04").innerHTML=legNames[this.onleg];
     return this.onleg;
+  }
+  GetLegName(leg)
+  {
+    return leg!=undefined?legNames[leg]:legNames[this.onleg];
+  }
+  GetTarget()
+  {
+    return {x:this.xstart,y:this.ystart};
   }
   IsEndOfLeg(xpos,ypos)
   {
@@ -883,14 +936,16 @@ class HoldPattern
     let len;
     switch (this.onleg)
     {
-    case eastleg:
+    case westleg:
     len = sy-this.y2;
+    //get("debug05").innerHTML="on "+legNames[this.onleg]+" "+len.toFixed(1); 
     if (len<0)
       return true;
     break;
 
-    case westleg:
+    case eastleg:
     len = this.y1-sy;
+    //get("debug05").innerHTML="on "+legNames[this.onleg]+" "+len.toFixed(1); 
     if (len<0)
       return true;
     break;

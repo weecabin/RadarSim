@@ -363,6 +363,7 @@ function onTouchMove(event)
           x.ClearColor("green");
       }
       dragmv.SetColor("green");
+      //AddStatus("assigning dragto");
       dragto = [touch0X, touch0Y]
     }
   }
@@ -434,6 +435,7 @@ function onTouchEnd(event)
   
   if ((dragto==undefined || dragmv==undefined) && singleTouch) 
   {
+    //AddStatus("clearing dragto");
     dragto=undefined;
     if (DropDownIsOpen())
     {
