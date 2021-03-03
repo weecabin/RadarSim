@@ -394,18 +394,18 @@ class MovingVector
   }
   Stats()
   {
-    let headingTargetStr="........";
+    let headingTargetStr="";
     if (this.turnDeltaAngle!=0)
     {
       let headingTarget=Math.round(FixHeading(this.turnTargetDirection+90));
       headingTargetStr=">"+headingTarget;
     }
-    let altTargetStr=".....";
+    let altTargetStr="";
     if (this.alt!=this.targetAlt)
     {
       altTargetStr=">"+Math.round(this.targetAlt/100);
     }
-    let speedTargetStr=".....";
+    let speedTargetStr="";
     if (this.targetSpeed!=undefined)
     {
        speedTargetStr=">"+this.targetSpeed;
@@ -683,7 +683,7 @@ class MovingVector
       if (Math.abs(this.alt-this.targetAlt)<=deltaAlt)
         this.alt=this.targetAlt;
     }
-    //get("debug06").innerHTML=(this.hp.GetLegName());
+    get("debug06").innerHTML=(this.hp.GetLegName());
     if (this.turnDeltaAngle!=0)
     //  completed a turn
     {

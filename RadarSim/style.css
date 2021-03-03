@@ -36,6 +36,12 @@
   display:none;
 }
 
+th
+{
+  margin-left:50px;
+  margin-right:50px;
+}
+
 p 
 {
   margin-bottom: .4em;
