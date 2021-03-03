@@ -141,7 +141,12 @@ function BtnClicked(btn)
     break;
 
     case "clearsketch":
-    ClearSketch("line");
+    let radial = drawings.filter(x=>x.lbl=="radial");
+    let fix = drawings.filter(x=>x.lbl=="fix");
+    if (radial.length>0)
+      ClearSketch("line,radial");
+    else
+      ClearSketch("line,fix");
     break;
 
     case "clearstatus":
@@ -184,6 +189,16 @@ function SetAltitude(obj)
     {
       if (obj.innerHTML=="Hold")
         mv[0].Hold(dragto);
+      else if (obj.innerHTML=="Radial")
+      {
+        let trueX = vt.toTrueX(dragto[0]);
+        let trueY = vt.toTrueY(dragto[1]); 
+        DrawFix(trueX,trueY);
+        drawings.push({lbl:"radial",
+                       x0:dragmv.xpos,y0:dragmv.ypos,
+                       x1:trueX,y1:trueY});
+        mv[0].FlyRadialFromCurrentPosition([trueX,trueY]);
+      }
       else
         mv[0].SetAltitude(Number(obj.innerHTML));
     }
@@ -365,6 +380,7 @@ function onTouchMove(event)
       dragmv.SetColor("green");
       //AddStatus("assigning dragto");
       dragto = [touch0X, touch0Y]
+      //get("debug09").innerHTML=touch0X.toFixed(1)+","+touch0Y.toFixed(1);
     }
   }
 
@@ -668,7 +684,7 @@ function StartAnimation(start)
   }
   else // start
   {
-    ClearSketch("rwy,hanger")
+    ClearSketch("rwy,hanger,fix")
     Objs=[];
     runAnimate=true;
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
@@ -678,6 +694,11 @@ function StartAnimation(start)
   }
 }
 
+function DrawFix(x,y,size=5)
+{
+  Draw("fix",x,y,[[-size,0,0,size],[0,size,size,0],[size,0,0,-size],
+                  [0,-size,-size,0]]);
+}
 function DrawRunway(x,y,runwayLen,coneLen,coneWidth)
 {
   let rl=runwayLen/2;
@@ -817,17 +838,17 @@ try
         let screenDist = Math.hypot(x1-x0,y1-y0);
         //get("debug04").innerHTML=screenDist;
         if (screenDist<50)
-          get("debug03").innerHTML="CANCEL";
+          get("debug02").innerHTML="CANCEL";
         else
         {
           let heading = FixHeading(Math.round((v.GetDirection()+90)/10)*10);
-          get("debug03").innerHTML="Hdg:"+ heading+
+          get("debug02").innerHTML="Hdg:"+ heading+
                     " "+(MvSpeed(dragmv,vt.fi/1000,10)).toFixed(0)+"kts"+
                     " "+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1)+"mi";
         }
       }
-      else
-        get("debug03").innerHTML="...";
+      //else
+      //  get("debug02").innerHTML="...";
       get("debug01").innerHTML=Objs.length+" Plane(s)";
       // draw all the planes
       for (let mv of Objs)

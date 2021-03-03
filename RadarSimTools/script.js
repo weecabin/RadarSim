@@ -316,6 +316,10 @@ class Vector
     return Math.hypot(this.x,this.y);
   }
 
+  /*
+  if this=0deg and other=20deg, returns 20
+  if this=20deg and other=0deg, returns -20 
+  */
   AngleBetween(other) 
   {
     let between=(other.GetDirection()-this.GetDirection());
@@ -329,7 +333,7 @@ class Vector
   IsSameDirection(other,epsilon=EPSILON) 
   {
     const dotProduct = this.Unit().Dot(other.Unit())
-    get("debug05").innerHTML=dotProduct;
+    //get("debug05").innerHTML=dotProduct;
     return AreEqual(dotProduct, 1, epsilon)
   }
 
@@ -386,21 +390,22 @@ class MovingVector
     this.targetSpeed=undefined;
     this.deltaSpeed=.5;
     this.hp=new HoldPattern(0,0,this);
+    this.radial=undefined;
   }
   Stats()
   {
-    let headingTargetStr="";
+    let headingTargetStr="........";
     if (this.turnDeltaAngle!=0)
     {
       let headingTarget=Math.round(FixHeading(this.turnTargetDirection+90));
       headingTargetStr=">"+headingTarget;
     }
-    let altTargetStr="";
+    let altTargetStr=".....";
     if (this.alt!=this.targetAlt)
     {
       altTargetStr=">"+Math.round(this.targetAlt/100);
     }
-    let speedTargetStr="";
+    let speedTargetStr=".....";
     if (this.targetSpeed!=undefined)
     {
        speedTargetStr=">"+this.targetSpeed;
@@ -419,9 +424,18 @@ class MovingVector
     "View: "+JSON.stringify(this.view);
     return ret;
   }
+  FlyRadialFromCurrentPosition(target)
+  {
+    if (target==undefined)
+      return;
+    let radial = new Vector(target[0]-this.xpos,
+                            target[1]-this.ypos)
+    //get("debug06").innerHTML="radial="+FixHeading(radial.GetDirection()+90).toFixed(1);
+    this.SlewTo(radial);
+    this.radial = new FlyRadial(radial,{x:target[0],y:target[1]},this);
+  }
   Hold(target)
   {
-    AddStatus("Hold, target= "+JSON.stringify(target));
     if (target!=undefined)
     {
       let truetarget = [vt.toTrueX(target[0]),vt.toTrueY(target[1])];
@@ -528,10 +542,12 @@ class MovingVector
     this.turnDeltaAngle=0;
   }
 
-  SlewTo(vector,inHold=false)
+  SlewTo(vector,inHold=false,onRadial=false)
   {
     if (!inHold && this.hp!=none)
       this.CancelHold();// breaks a hold if in one
+    if (!onRadial)
+      this.radial=undefined;
     let angleBetween=this.vector.AngleBetween(vector);
     let slewRate=this.vt.fi/333.3;
     if(!this.hp.Holding() || (this.hp.Holding() && this.hp.GetLeg()==entering))
@@ -667,7 +683,7 @@ class MovingVector
       if (Math.abs(this.alt-this.targetAlt)<=deltaAlt)
         this.alt=this.targetAlt;
     }
-    get("debug06").innerHTML=(this.hp.GetLegName());
+    //get("debug06").innerHTML=(this.hp.GetLegName());
     if (this.turnDeltaAngle!=0)
     //  completed a turn
     {
@@ -707,13 +723,28 @@ class MovingVector
         this.vector=this.vector.ProjectOn(nextVector);
       }
     }
+    else if (this.radial!=undefined)
+    {
+      let correction = this.radial.GetVector();
+      if (AreEqual(this.vector.GetDirection(),correction.GetDirection()))
+        this.radial=undefined;
+      else
+      {
+        /*
+        get("debug07").innerHTML="current="+
+          FixHeading(this.vector.GetDirection()+90).toFixed(1);
+        get("debug09").innerHTML="new="+
+          FixHeading(correction.GetDirection()+90).toFixed(1);
+        */
+        this.SlewTo(correction,undefined,true);
+      }
+    }
     else if (this.hp.Holding() || this.hp.GetLeg()==traveling)
     {
       if (this.hp.GetLeg()==traveling)
       {
         let target = this.hp.GetTarget();
         let dist= Math.hypot(target.x-this.xpos,target.y-this.ypos);
-        get("debug07").innerHTML="dist="+dist.toFixed(2);
         if (dist<.1)
         {
           this.Hold();
@@ -802,6 +833,52 @@ class MovingVector
   }
 }
 
+class FlyRadial
+{
+  // radial = vector to the target
+  // target = {x:xpos,y:ypos}
+  constructor(radial,target,movingVector)
+  {
+    this.radial=radial;
+    this.target=target; //true position
+    this.mv=movingVector;
+  }
+
+  GetVector()
+  {
+    let cv = this.mv.vector;
+    let cl = {x:this.mv.xpos,y:this.mv.ypos};
+    this.dist = Math.hypot(this.target.x-cl.x,this.target.y-cl.y);
+    let vectorToTarget = new Vector(this.target.x-cl.x,this.target.y-cl.y);
+    //get("debug08").innerHTML="target="+this.target.x+","+this.target.y;
+    let dot = vectorToTarget.Dot(this.radial);
+    if (dot<0)
+      // heading the wrong direction
+      // turn to parallel the radial
+      return this.radial.Unit();
+    let headingError=this.radial.AngleBetween(vectorToTarget);
+    /*
+    vectorToTarget takes us directly to the target. Ideally, We want to get 
+    on the radial before the target. Rotating vectorToTarget by the 
+    difference between the radial and the vectorToTarget, will asymptotically
+    approach the target, so rotate by some factor greater than 1 
+    */
+    const maxError=45.0;
+    headingError*=5.0;
+    if (headingError>maxError)
+      headingError=maxError;
+    else if (headingError<-maxError)
+      headingError=-maxError;
+    let newVector = vectorToTarget.Rotate(headingError);
+    return newVector;
+  }
+  IsAtTarget()
+  {
+    if (this.dist<.1)
+      return true;
+    return false;
+  }
+}
 // manages a hold pattern, currently left turns only
 // xpos/ypos mark the beginning of the east leg
 // speed is in mph
