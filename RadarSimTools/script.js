@@ -492,7 +492,7 @@ class MovingVector
       DrawSquare(center.x+smallTangentV.x,center.y+smallTangentV.y,2,"radial");
 
       this.FlyRadialFromCurrentPosition(tangentTarget);
-      this.hp.SetLeg(targetTrue.x,targetTrue.y,traveling);
+      this.hp.SetLeg(traveling,[targetTrue.x,targetTrue.y]);
     }
     else
     {
@@ -745,7 +745,7 @@ class MovingVector
         this.alt=this.targetAlt;
     }
     //get("debug08").innerHTML="";
-    //get("debug06").innerHTML=(this.hp.GetLegName());
+    get("debug06").innerHTML=(this.hp.GetLegName());
     if (this.turnDeltaAngle!=0)
     //  completed a turn
     {
@@ -793,8 +793,13 @@ class MovingVector
         case radial_tracking:
         if (this.radial.IsAtTarget())
         {
-          this.SlewTo(new Vector(0,1),this.rightTurn);
-          this.radial.SetState(radial_turnin);
+          if (this.hp.GetLeg()==traveling)
+          {
+            this.SlewTo(new Vector(0,1),this.rightTurn);
+            this.radial.SetState(radial_turnin);
+          }
+          else
+            this.radial=undefined;
         }
         else
         {
