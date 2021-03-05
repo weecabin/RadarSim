@@ -104,7 +104,7 @@ function DropDown(btn)
 function BtnClicked(btn)
 {
   CloseAllDropDowns();
-  //AddStatus(btn.name+" clicked");
+  AddStatus(btn.name+" clicked");
   btn.parentElement.style.display="";
   switch (btn.name)
   {
@@ -143,9 +143,9 @@ function BtnClicked(btn)
 
     case "clearsketch":
     let radial = drawings.filter(x=>x.lbl=="radial");
-    let fix = drawings.filter(x=>x.lbl=="fix");
+    let fix = drawings.filter(x=>x.lbl=="hold");
     if (radial.length>0)
-      ClearSketch("line,radial");
+      ClearSketch("line,radial,hold");
     else
       ClearSketch("line,fix");
     break;
@@ -189,7 +189,10 @@ function SetAltitude(obj)
     if (mv.length==1)
     {
       if (obj.innerHTML=="Hold")
+      {
+        drawLine
         mv[0].Hold(dragto);
+      }
       else if (obj.innerHTML=="Radial")
       {
         let trueX = vt.toTrueX(dragto[0]);
@@ -691,13 +694,22 @@ function StartAnimation(start)
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
     DrawRunway(runway1.x,runway1.y,20,100,10);
     DrawRunway(runway2.x,runway2.y,20,100,10);
+    for(let x=0;x<=400;x+=100)
+      for (let y=0;y<=400;y+=100)
+        DrawFix(x,y);
     Animate();
   }
 }
 
-function DrawFix(x,y,size=5)
+function DrawSquare(x,y,size=2,label="line")
 {
-  Draw("fix",x,y,[[-size,0,0,size],[0,size,size,0],[size,0,0,-size],
+  Draw(label,x,y,[[-size,-size,-size,size],[-size,size,size,size],
+                   [size,size,size,-size],[size,-size,-size,-size]]);
+}
+
+function DrawFix(x,y,size=5,label="fix")
+{
+  Draw(label,x,y,[[-size,0,0,size],[0,size,size,0],[size,0,0,-size],
                   [0,-size,-size,0]]);
 }
 function DrawRunway(x,y,runwayLen,coneLen,coneWidth)
