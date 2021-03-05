@@ -507,20 +507,7 @@ class MovingVector
     //let diamPix = 10*diam; // in pixels
     return this.GetSpeed()/(3*Math.PI);
   }
-  HoldOld(target)
-  {
-    if (target!=undefined)
-    {
-      let truetarget = [vt.toTrueX(target[0]),vt.toTrueY(target[1])];
-      this.SlewTo(new Vector(truetarget[0]-this.xpos,truetarget[1]-this.ypos));
-      this.hp.SetLeg(traveling,truetarget);
-    }
-    else
-    {
-      this.SlewTo(new Vector(0,1),true);
-      this.hp.StartHold(this.xpos,this.ypos);
-    }
-  }
+
   GetHeading()
   {
     return Math.round(FixHeading(this.vector.GetDirection()+90));
@@ -692,19 +679,6 @@ class MovingVector
     let ypos = this.ypos;
     switch (drw.type)
     {
-      case "circle":
-      //{type:"circle",radius:15,color:"black"};
-      ctx.beginPath();
-      ctx.arc(vt.toScreenX(xpos), vt.toScreenY(ypos), 
-              drw.radius*vt.scale, 0, 2 * Math.PI);
-      if (drw.color=="red")
-      {
-        ctx.fillStyle=drw.color;
-        ctx.fill();
-      }
-      ctx.stroke();
-      break;
-
       case "plane":
       let rotate = this.vector.GetDirection();
       let halflen=drw.length/2;
@@ -741,6 +715,8 @@ class MovingVector
       {
         this.hp.Draw(ctx);
       }
+      if (this.radial!=undefined)
+        this.radial.DrawLineToTarget();
       break;
     }
     //AddStatus("Exiting Draw");
@@ -811,7 +787,7 @@ class MovingVector
     }
     else if (this.radial!=undefined)
     {
-      //get("debug08").innerHTML=this.radial.GetStateName();
+      //get("debug08").innerHTML=this.radial.GetStateName()
       switch (this.radial.GetState())
       {
         case radial_tracking:
@@ -827,6 +803,8 @@ class MovingVector
           {
             this.SlewTo(correction,this.shortestTurn);
           }
+          //drawLine(this.xpos,this.ypos,
+          //         this.radial.target.x,this.radial.target.y);
         }
         break;
 
@@ -947,6 +925,8 @@ class FlyRadial
     this.target=target; //true position
     this.mv=movingVector;
     this.state=radial_tracking;
+    this.startx=this.mv.xpos;
+    this.starty=this.mv.ypos;
   }
   GetState()
   {
@@ -959,6 +939,13 @@ class FlyRadial
   GetStateName()
   {
     return radialStateNames[this.GetState()];
+  }
+  DrawLineToTarget()
+  {
+    vt.ctx.beginPath();
+    vt.ctx.moveTo(vt.toScreenX(this.startx),vt.toScreenY(this.starty));
+    vt.ctx.lineTo(vt.toScreenX(this.target.x),vt.toScreenY(this.target.y));
+    vt.ctx.stroke();
   }
   GetVector()
   {
@@ -979,7 +966,7 @@ class FlyRadial
     difference between the radial and the vectorToTarget, will asymptotically
     approach the target, so rotate by some factor greater than 1 
     */
-    const maxError=45.0;
+    const maxError=30.0; 
     headingError*=5.0;
     if (headingError>maxError)
       headingError=maxError;
@@ -1037,6 +1024,7 @@ class HoldPattern
     {
     if (!this.holding)return;
     this.ComputeOval();
+    ctx.beginPath();
     ctx.moveTo(this.x1,this.y1);
     ctx.lineTo(this.x1,this.y2);
     ctx.arc(this.tcx, this.y2, this.radius, ToRadians(0), ToRadians(180),true);
