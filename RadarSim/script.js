@@ -197,7 +197,7 @@ function SetAltitude(obj)
       {
         let trueX = vt.toTrueX(dragto[0]);
         let trueY = vt.toTrueY(dragto[1]); 
-        DrawFix(trueX,trueY);
+        DrawFix(trueX,trueY,2,"radial");
         drawings.push({lbl:"radial",
                        x0:dragmv.xpos,y0:dragmv.ypos,
                        x1:trueX,y1:trueY});
