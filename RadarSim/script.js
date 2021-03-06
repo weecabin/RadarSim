@@ -7,11 +7,13 @@ var canvasRect;
 // list of all strokes drawn
 const drawings = [];
 const vt = new ViewTools(canvas,context,30);
+const holdList = new HoldManager();
 const runway1={x:canvas.width/2,y:canvas.height/2-10};
 const runway2={x:canvas.width/2,y:canvas.height/2+10};
 const runwayRange=150;
 var Objs=[];
 var tcas=[];
+var aircraftID=1;
 
 function setup()
 {
@@ -104,7 +106,7 @@ function DropDown(btn)
 function BtnClicked(btn)
 {
   CloseAllDropDowns();
-  //AddStatus(btn.name+" clicked");
+  AddStatus(btn.name+" clicked");
   btn.parentElement.style.display="";
   switch (btn.name)
   {
@@ -143,9 +145,9 @@ function BtnClicked(btn)
 
     case "clearsketch":
     let radial = drawings.filter(x=>x.lbl=="radial");
-    let fix = drawings.filter(x=>x.lbl=="fix");
+    let fix = drawings.filter(x=>x.lbl=="hold");
     if (radial.length>0)
-      ClearSketch("line,radial");
+      ClearSketch("line,radial,hold");
     else
       ClearSketch("line,fix");
     break;
@@ -189,15 +191,14 @@ function SetAltitude(obj)
     if (mv.length==1)
     {
       if (obj.innerHTML=="Hold")
+      {
+        drawLine
         mv[0].Hold(dragto);
+      }
       else if (obj.innerHTML=="Radial")
       {
         let trueX = vt.toTrueX(dragto[0]);
         let trueY = vt.toTrueY(dragto[1]); 
-        DrawFix(trueX,trueY);
-        drawings.push({lbl:"radial",
-                       x0:dragmv.xpos,y0:dragmv.ypos,
-                       x1:trueX,y1:trueY});
         mv[0].FlyRadialFromCurrentPosition([trueX,trueY]);
       }
       else
@@ -259,7 +260,7 @@ window.addEventListener("resize", (event) =>
   redrawCanvas();
 });
 
-function drawLine(x0, y0, x1, y1) 
+function drawLine(x0, y0, x1, y1) // used in redrawCanvas
 {
   context.beginPath();
   context.moveTo(x0, y0);
@@ -267,6 +268,43 @@ function drawLine(x0, y0, x1, y1)
   context.strokeStyle = '#000';
   context.lineWidth = 1;
   context.stroke();
+}
+
+function DrawLine(x0, y0, x1, y1)
+{
+}
+
+function DrawSquare(x,y,size=2,label="line")
+{
+  Draw(label,x,y,[[-size,-size,-size,size],[-size,size,size,size],
+                   [size,size,size,-size],[size,-size,-size,-size]]);
+}
+
+function DrawFix(x,y,size=5,label="fix")
+{
+  Draw(label,x,y,[[-size,0,0,size],[0,size,size,0],[size,0,0,-size],
+                  [0,-size,-size,0]]);
+}
+function DrawRunway(x,y,runwayLen,coneLen,coneWidth)
+{
+  let rl=runwayLen/2;
+  let cl=coneLen;
+  let cw=coneWidth/2;
+  Draw("rwy",x,y,
+       [
+         [-rl,0,rl,0],
+         [-rl,0,-rl-cl,5],[-rl,0,-rl-cl,-cw],[-rl-cl,-cw,-rl-cl,cw],
+         [rl,0,rl+cl,5],[rl,0,rl+cl,-cw],[rl+cl,-cw,rl+cl,cw]
+       ]);
+}
+
+/*
+deltaLine = [[dx0,dy0,dx1,dy1],...]
+*/
+function Draw(label,x,y,deltaLine)
+{
+  for (let pt of deltaLine)
+    drawings.push({lbl:label,x0:x+pt[0],y0:y+pt[1],x1:x+pt[2],y1:y+pt[3]});
 }
 
 // touch functions and variables
@@ -359,7 +397,6 @@ function onTouchMove(event)
         x1: scaledX,
         y1: scaledY
       });
-      drawLine(prevTouch0X, prevTouch0Y, touch0X, touch0Y);
     } 
     else if (Objs.length!=0)
     {
@@ -567,7 +604,7 @@ function AddPlanes()
       let randy = ymin+Math.random()*(ymax-ymin);
       let randx = xmin+Math.random()*(xmax-xmin);
       let plane={type:"plane",length:15,width:12,color:"black",
-               drag:0,gravity:0};
+               drag:0,gravity:0,id:aircraftID++};
       let movingVector;
       switch (sides[side])
       {
@@ -666,7 +703,7 @@ function AddPlane()
   //AddStatus("In AddPlane");
   //let speed=Number(get("speed").value);
   let plane={type:"plane",length:15,width:12,color:"black",
-               drag:0,gravity:0};
+               drag:0,gravity:0,id:aircraftID++};
   // VectorLength(targetMPH,frameInterval,pixelsPerMile)
   let speed = Number(get("speed").value)
   let vlen=VectorLength(speed,vt.FrameIntervalInSeconds(),10);
@@ -691,36 +728,14 @@ function StartAnimation(start)
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
     DrawRunway(runway1.x,runway1.y,20,100,10);
     DrawRunway(runway2.x,runway2.y,20,100,10);
+    for(let x=0;x<=400;x+=100)
+      for (let y=0;y<=400;y+=100)
+        DrawFix(x,y);
     Animate();
   }
 }
 
-function DrawFix(x,y,size=5)
-{
-  Draw("fix",x,y,[[-size,0,0,size],[0,size,size,0],[size,0,0,-size],
-                  [0,-size,-size,0]]);
-}
-function DrawRunway(x,y,runwayLen,coneLen,coneWidth)
-{
-  let rl=runwayLen/2;
-  let cl=coneLen;
-  let cw=coneWidth/2;
-  Draw("rwy",x,y,
-       [
-         [-rl,0,rl,0],
-         [-rl,0,-rl-cl,5],[-rl,0,-rl-cl,-cw],[-rl-cl,-cw,-rl-cl,cw],
-         [rl,0,rl+cl,5],[rl,0,rl+cl,-cw],[rl+cl,-cw,rl+cl,cw]
-       ]);
-}
 
-/*
-deltaLine = [{dx0,dy0,dx1,dy1},...]
-*/
-function Draw(label,x,y,deltaLine)
-{
-  for (let pt of deltaLine)
-    drawings.push({lbl:label,x0:x+pt[0],y0:y+pt[1],x1:x+pt[2],y1:y+pt[3]});
-}
 let runAnimate=false;
 function Animate()
 {
