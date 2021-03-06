@@ -7,11 +7,13 @@ var canvasRect;
 // list of all strokes drawn
 const drawings = [];
 const vt = new ViewTools(canvas,context,30);
+const holdList = new HoldManager();
 const runway1={x:canvas.width/2,y:canvas.height/2-10};
 const runway2={x:canvas.width/2,y:canvas.height/2+10};
 const runwayRange=150;
 var Objs=[];
 var tcas=[];
+var aircraftID=1;
 
 function setup()
 {
@@ -602,7 +604,7 @@ function AddPlanes()
       let randy = ymin+Math.random()*(ymax-ymin);
       let randx = xmin+Math.random()*(xmax-xmin);
       let plane={type:"plane",length:15,width:12,color:"black",
-               drag:0,gravity:0};
+               drag:0,gravity:0,id:aircraftID++};
       let movingVector;
       switch (sides[side])
       {
@@ -701,7 +703,7 @@ function AddPlane()
   //AddStatus("In AddPlane");
   //let speed=Number(get("speed").value);
   let plane={type:"plane",length:15,width:12,color:"black",
-               drag:0,gravity:0};
+               drag:0,gravity:0,id:aircraftID++};
   // VectorLength(targetMPH,frameInterval,pixelsPerMile)
   let speed = Number(get("speed").value)
   let vlen=VectorLength(speed,vt.FrameIntervalInSeconds(),10);

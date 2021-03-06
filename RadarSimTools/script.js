@@ -40,6 +40,50 @@ class StateMachine
   }
 }
 
+/*
+keeps and manages a list of holds
+*/
+class HoldManager
+{
+  constructor()
+  {
+    this.holdList=[];
+  }
+  // hold = {id:aircraftID,x:#,y:#}
+  // where x,y = hold entry to south turn
+  Request(x,y,aircraftID)
+  {
+    for (let h of this.holdList)
+    {
+      let dist = Math.hypot(h.x-x,h.y-y);
+      AddStatus("hold dist="+dist.toFixed(1));
+    }
+    let found = this.holdList.filter(h=>Math.hypot(h.x-x,h.y-y)<100);
+    // add the requested hold, and return a hold if there already
+    // a plane holding there.
+    this.holdList.push({id:aircraftID,x:x,y:y});
+    if (found.length>0)
+    {
+      AddStatus("hold exists");
+      return found[0];
+    }
+    AddStatus("no hold found");
+    return undefined;
+  }
+  Remove(aircraftID)
+  {
+    for (let i=0;i<this.holdList.length;i++)
+    {
+      AddStatus("remove hold search "+aircraftID+" "+this.holdList[i].id);
+      if (this.holdList[i].id==aircraftID)
+      {
+        this.holdList.splice(i,1);
+        return true;
+      }
+    }
+    return false;
+  }
+}
 
 class ViewTools
 {
@@ -371,7 +415,7 @@ Return Value
 
 *************************************************************/ 
 const circleObj={type:"circle",radius:15,color:"black",drag:0,gravity:0};
-const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0};
+const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0,id:0};
 const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0};
 class MovingVector
 {
@@ -437,7 +481,7 @@ class MovingVector
       return;
     let radial = new Vector(target[0]-this.xpos,
                             target[1]-this.ypos);
-    this.SlewTo(radial);
+    this.SlewTo(radial,this.shortestTurn);
     this.radial = new FlyRadial(radial,{x:target[0],y:target[1]},this);
   }
   Hold(target)
@@ -452,6 +496,15 @@ class MovingVector
       // find the center of the turn in
       let targetTrue={x:this.vt.toTrueX(target[0]),
                       y:this.vt.toTrueY(target[1])};
+      let holdFound = holdList.Request(targetTrue.x,targetTrue.y,
+                         this.drawObject.id);
+      if (holdFound!=undefined)
+      {
+        AddStatus(JSON.stringify(holdFound));
+        targetTrue.x=holdFound.x;
+        targetTrue.y=holdFound.y;
+      }
+
       let center = {x:targetTrue.x-diam/2,y:targetTrue.y};
       
       // find the angle for a tangent to the turn in circle
@@ -460,7 +513,7 @@ class MovingVector
       //AddStatus("theta="+theta.toFixed(1));
 
       // mark the start of the hold with a diamond
-      DrawFix(this.vt.toTrueX(target[0]),this.vt.toTrueY(target[1]),2,"radial");
+      DrawFix(targetTrue.x,targetTrue.y,2,"radial");
       DrawSquare(center.x,center.y,2,"radial")
 
       // create a vector from the current position to the center
@@ -469,7 +522,7 @@ class MovingVector
                          //vt.toScreenY(center.y).toFixed(1));
 
       // Mark current point and create a vector to it
-      DrawSquare(this.xpos,this.ypos,2,"radial");
+      //DrawSquare(this.xpos,this.ypos,2,"radial");
       let centerV=new Vector(center.x-this.xpos,center.y-this.ypos);
       //AddStatus("centerV heading="+FixHeading(centerV.GetDirection()+90));
 
@@ -489,7 +542,7 @@ class MovingVector
 
       // Mark the target on the turn in circle
       let tangentTarget = [center.x+smallTangentV.x,center.y+smallTangentV.y];
-      DrawSquare(center.x+smallTangentV.x,center.y+smallTangentV.y,2,"radial");
+      //DrawSquare(center.x+smallTangentV.x,center.y+smallTangentV.y,2,"radial");
 
       this.FlyRadialFromCurrentPosition(tangentTarget);
       this.hp.SetLeg(traveling,[targetTrue.x,targetTrue.y]);
@@ -1056,6 +1109,7 @@ class HoldPattern
   {
     this.holding=false;
     this.onleg=none;
+    holdList.Remove(this.mv.drawObject.id);
   }
   StartHold(xpos,ypos)
   {
