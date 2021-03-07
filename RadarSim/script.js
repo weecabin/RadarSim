@@ -106,7 +106,7 @@ function DropDown(btn)
 function BtnClicked(btn)
 {
   CloseAllDropDowns();
-  AddStatus(btn.name+" clicked");
+  //AddStatus(btn.name+" clicked");
   btn.parentElement.style.display="";
   switch (btn.name)
   {
@@ -159,6 +159,19 @@ function BtnClicked(btn)
     case "debug":
     Debug(btn);
     break;
+
+   case "grid":
+   if (btn.innerHTML.includes("Clear"))
+   {
+     btn.innerHTML="Draw Grid";
+     ClearSketch("grid");
+   }
+   else
+   {
+     btn.innerHTML="Clear Grid";
+     DrawGrid();
+   }
+   break;
   }
 }
 
@@ -270,14 +283,14 @@ function drawLine(x0, y0, x1, y1) // used in redrawCanvas
   context.stroke();
 }
 
-function DrawLine(x0, y0, x1, y1)
-{
-}
-
 function DrawSquare(x,y,size=2,label="line")
 {
   Draw(label,x,y,[[-size,-size,-size,size],[-size,size,size,size],
                    [size,size,size,-size],[size,-size,-size,-size]]);
+}
+
+function DrawCircle(x,y,radius,label="line")
+{
 }
 
 function DrawFix(x,y,size=5,label="fix")
@@ -285,6 +298,14 @@ function DrawFix(x,y,size=5,label="fix")
   Draw(label,x,y,[[-size,0,0,size],[0,size,size,0],[size,0,0,-size],
                   [0,-size,-size,0]]);
 }
+
+function DrawGrid(spacing=200)
+{
+  for(let x=0;x<=(canvas.width+200);x+=200)
+    for (let y=0;y<=(canvas.height+200);y+=200)
+      DrawFix(x,y,5,"grid");
+}
+
 function DrawRunway(x,y,runwayLen,coneLen,coneWidth)
 {
   let rl=runwayLen/2;
@@ -306,6 +327,22 @@ function Draw(label,x,y,deltaLine)
   for (let pt of deltaLine)
     drawings.push({lbl:label,x0:x+pt[0],y0:y+pt[1],x1:x+pt[2],y1:y+pt[3]});
 }
+
+// clears all line types passed in type
+// linetype is a comma delimited string
+// "line,rwy,hanger"
+function ClearSketch(linetype)
+{
+  for (let i = drawings.length-1;i>=0;i--)
+  {
+    if (linetype.includes(drawings[i].lbl))
+    {
+      drawings.splice(i,1);
+    }
+  }
+  redrawCanvas();
+}
+
 
 // touch functions and variables
 const prevTouches = [null, null]; // up to 2 touches
@@ -549,21 +586,6 @@ function get(id)
   return document.getElementById(id);
 }
 
-// clears all line types passed in type
-// linetype is a comma delimited string
-// "line,rwy,hanger"
-function ClearSketch(linetype)
-{
-  for (let i = drawings.length-1;i>=0;i--)
-  {
-    if (linetype.includes(drawings[i].lbl))
-    {
-      drawings.splice(i,1);
-    }
-  }
-  redrawCanvas();
-}
-
 function AddPlanes()
 {
   let button = get("addplanes");
@@ -728,9 +750,6 @@ function StartAnimation(start)
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
     DrawRunway(runway1.x,runway1.y,20,100,10);
     DrawRunway(runway2.x,runway2.y,20,100,10);
-    for(let x=0;x<=400;x+=100)
-      for (let y=0;y<=400;y+=100)
-        DrawFix(x,y);
     Animate();
   }
 }
