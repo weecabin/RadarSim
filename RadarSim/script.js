@@ -205,7 +205,6 @@ function SetAltitude(obj)
     {
       if (obj.innerHTML=="Hold")
       {
-        drawLine
         mv[0].Hold(dragto);
       }
       else if (obj.innerHTML=="Radial")
@@ -264,6 +263,7 @@ function redrawCanvas(heightPercent = 80, widthPercent = 100)
       mv.Draw(context);
     }
   }
+  holdList.DrawHolds();
 }
 redrawCanvas();
 
@@ -400,7 +400,7 @@ function ClosestPlane(scaledX,scaledY)
   return closestmv;
 }
 
-function onTouchMove(event) 
+function onTouchMove(event)
 {
   try
   {
@@ -763,9 +763,10 @@ try
   //AddStatus("In Animate");
   var id = setInterval(frame, vt.fi);
   var count=0;
+  var maxPerformance=0
   function frame() 
   {
-    //var t0 = performance.now();
+    var t0 = performance.now();
     try
     {
     //AddStatus("in Frame");
@@ -887,17 +888,13 @@ try
                     " "+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1)+"mi";
         }
       }
-      //else
-      //  get("debug02").innerHTML="...";
       get("debug01").innerHTML=Objs.length+" Plane(s)";
-      // draw all the planes
-      for (let mv of Objs)
-      {
-        mv.Draw(context);
-      }
     }
-    //var t1=performance.now();
-    //get("debug04").innerHTML=(t1-t0).toFixed(1)+"ms";
+    let t1=performance.now();
+    let delta = t1-t0;
+    if (delta>maxPerformance)maxPerformance=delta;
+    get("debug04").innerHTML=delta.toFixed(1)+"/max="+
+                             maxPerformance.toFixed(1)+"ms";
     }
     catch(err)
     {

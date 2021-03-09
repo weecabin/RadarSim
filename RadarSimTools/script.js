@@ -5,6 +5,7 @@ class StateMachine
     this.name = name;
     this.states=[];
     this.transitions=[];
+    this.currentState="";
   }
   AddState(name,callback)
   {
@@ -40,6 +41,48 @@ class StateMachine
   }
 }
 
+class HoldOval
+{
+  constructor(x,y,speed=260)
+  {
+    this.xstart=x;
+    this.ystart=y;
+    this.speed = speed/60; //miles per minute
+    this.ComputeOval();
+  }
+  ComputeOval()
+  {
+    let testx1=vt.toScreenX(this.xstart);
+    let testy1=vt.toScreenY(this.ystart);
+    if (this.x1==testx1 && this.y1==testy1)return;
+    this.diam = 2*this.speed/Math.PI; // diameter of 2minute turn in mi 
+    this.x1 = testx1;
+    this.x2 = this.x1-(this.diam*10)*vt.scale; 
+    this.y1 = testy1;
+    this.y2 = this.y1-10*this.speed*vt.scale;
+    this.tcx = (this.x1+this.x2)/2;
+    this.radius = Math.abs(this.tcx-this.x1);
+  }
+  Draw()
+  {
+    try
+    {
+    this.ComputeOval();
+    let ctx=vt.ctx;
+    ctx.beginPath();
+    ctx.moveTo(this.x1,this.y1);
+    ctx.lineTo(this.x1,this.y2);
+    ctx.arc(this.tcx, this.y2, this.radius, ToRadians(0), ToRadians(180),true);
+    ctx.lineTo(this.x2,this.y1);
+    ctx.arc(this.tcx, this.y1, this.radius, ToRadians(180), ToRadians(0),true);
+    ctx.stroke();
+    }
+    catch(err)
+    {
+      AddStatus(err);
+    }
+  }
+}
 /*
 keeps and manages a list of holds
 */
@@ -47,41 +90,70 @@ class HoldManager
 {
   constructor()
   {
+    // [x:#,y:#,planes:[],
     this.holdList=[];
   }
-  // hold = {id:aircraftID,x:#,y:#}
   // where x,y = hold entry to south turn
   Request(x,y,aircraftID)
   {
-    for (let h of this.holdList)
-    {
-      let dist = Math.hypot(h.x-x,h.y-y);
-      //AddStatus("hold dist="+dist.toFixed(1));
-    }
     let found = this.holdList.filter(h=>Math.hypot(h.x-x,h.y-y)<100);
     // add the requested hold, and return a hold if there already
-    // a plane holding there.
-    this.holdList.push({id:aircraftID,x:x,y:y});
-    if (found.length>0)
+    // is a plane holding there.
+    if (found.length==0)
     {
-      //AddStatus("hold exists");
-      return found[0];
+      this.holdList.push({x:x,y:y,oval:new HoldOval(x,y),planes:[aircraftID]});
+      //AddStatus(JSON.stringify(holdList));
+      return undefined;
     }
-    //AddStatus("no hold found");
-    return undefined;
+    found[0].planes.push(aircraftID);
+    //AddStatus(JSON.stringify(holdList));
+    return found[0];
   }
   Remove(aircraftID)
   {
+    //AddStatus("Removing "+aircraftID);
     for (let i=0;i<this.holdList.length;i++)
     {
-      //AddStatus("remove hold search "+aircraftID+" "+this.holdList[i].id);
-      if (this.holdList[i].id==aircraftID)
+      for (let j=0;j<this.holdList[i].planes.length;j++)
       {
-        this.holdList.splice(i,1);
-        return true;
+        if (this.holdList[i].planes[j]==aircraftID)
+        {
+          this.holdList[i].planes.splice(j,1);
+          if (this.holdList[i].planes.length==0)
+            this.holdList.splice(i,1);
+          //AddStatus(JSON.stringify(holdList));
+          return true;
+        }
       }
     }
+    //AddStatus(JSON.stringify(holdList));
+    //AddStatus("not found");
     return false;
+  }
+
+  DrawHolds()
+  {
+    for (let hold of this.holdList)
+    {
+      let d=2;
+      drawLine(vt.toScreenX(hold.x),vt.toScreenY(hold.y-d),
+               vt.toScreenX(hold.x+d),vt.toScreenY(hold.y));
+
+      drawLine(vt.toScreenX(hold.x+d),vt.toScreenY(hold.y),
+               vt.toScreenX(hold.x),vt.toScreenY(hold.y+d));
+
+      drawLine(vt.toScreenX(hold.x),vt.toScreenY(hold.y+d),
+               vt.toScreenX(hold.x-d),vt.toScreenY(hold.y));
+
+      drawLine(vt.toScreenX(hold.x-d),vt.toScreenY(hold.y),
+               vt.toScreenX(hold.x),vt.toScreenY(hold.y-d));
+      hold.oval.Draw();
+    }
+  }
+
+  GetSpeed()
+  {
+    return 260;
   }
 }
 
@@ -416,10 +488,10 @@ Return Value
 *************************************************************/ 
 const circleObj={type:"circle",radius:15,color:"black",drag:0,gravity:0};
 const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0,id:0};
-const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0};
+const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0,id:0};
 class MovingVector
 {
-  constructor(xlen,ylen,startx,starty,drawObject=circleObj,
+  constructor(xlen,ylen,startx,starty,drawObject=planeObj,
               view=null,altitude=15000,tag="none")
   {
     this.vector= new Vector(xlen,ylen);
@@ -437,7 +509,7 @@ class MovingVector
     this.colors=["black"]; // default
     this.targetSpeed=undefined;
     this.deltaSpeed=.5;
-    this.hp=new HoldPattern(0,0,this);
+    this.hp=new HoldPattern(0,0,drawObject.id,this.GetSpeed.bind(this));
     this.radial=undefined;
     this.shortestTurn=0;
     this.leftTurn=1;
@@ -490,49 +562,42 @@ class MovingVector
   with the specified circle.
   circle={true:{x:#,y:#,radius:#},screen:{x:#,y:#,radius:#}}
   */
-  IsHeadingTangent(circle)
+  IsHeadingTangent(circle,accuracy=.01)
   {
     let radius = circle.true.radius; 
     // set the center of the circle
-    let center = {x:circle.true.x-radius,y:circle.true.y};
+    let center = {x:circle.true.x,y:circle.true.y};
 
     // find the angle between a vector to the center of
-    // the south turn and a vector tangent with the southturn
+    // the circle and a vector tangent with it
+    //AddStatus("radius="+radius);
+    //AddStatus("dist="+Math.hypot(center.x-this.xpos,center.y-this.ypos));
     let theta = ToDegrees(Math.asin(radius/
                     Math.hypot(center.x-this.xpos,center.y-this.ypos)));
-
-    // create a vector from the current position to the center
-    // of the south turn
+    //AddStatus("tangent angle="+theta);
+    // create a vector from the current position
+    // to the center of the circle
     let centerV=new Vector(center.x-this.xpos,center.y-this.ypos);
+    //AddStatus("My Vector="+JSON.stringify(this.vector));
+    //AddStatus("Center Vector="+JSON.stringify(centerV));
 
     // centerV angle relative to 90deg
     let rotate = centerV.GetDirection();
-    rotate += rotate>0?-theta:theta;
+    rotate = rotate>0?theta:-theta;
     centerV.RotateMe(rotate);
-
-    // create a vector from turn in center to tangent point
-    let smallTangentV=new Vector(0,-1);
-    smallTangentV.SetLength(radius);
-    smallTangentV.RotateMe(rotate);
-
-    // Mark the target on the turn in circle
-    let tangentTarget = [center.x+smallTangentV.x,center.y+smallTangentV.y];
-    //DrawSquare(tangentTarget[0],tangentTarget[1],2,"radial");
-    let tangentVector = new Vector(tangentTarget[0],tangentTarget[1]);
-
-    //get("debug06").innerHTML=center.x.toFixed(3)+","+center.y.toFixed(3);
-    get("debug06").innerHTML=this.vector.GetDirection().toFixed(3);
-    get("debug07").innerHTML=tangentVector.GetDirection().toFixed(3);
+    //AddStatus("rotate="+rotate.toFixed(3));
+    //AddStatus("Rotated center vector="+JSON.stringify(centerV));
     return AreEqual(this.vector.GetDirection(),
-                  tangentVector.GetDirection(),.001);
+                  centerV.GetDirection(),accuracy);
   }
 
   Hold(target)
   {
     if (target!=undefined)
     {
+      this.targetSpeed=260;
       // 2*speedInMph/60 or a 2min turn
-      let diam = this.Diam2MinPix();
+      let diam = this.Diam2MinPix(260);
       //get("debug07").innerHTML=(diam/2).toFixed(3);
       // convert target to true coordinates
       let targetTrue={x:this.vt.toTrueX(target[0]),
@@ -545,7 +610,7 @@ class MovingVector
       if (holdFound!=undefined)
       {
         // Use the other plane(s) hold target
-        AddStatus(JSON.stringify(holdFound));
+        //AddStatus(JSON.stringify(holdFound));
         targetTrue.x=holdFound.x;
         targetTrue.y=holdFound.y;
       }
@@ -558,7 +623,7 @@ class MovingVector
                     Math.hypot(center.x-this.xpos,center.y-this.ypos)));
 
       // mark the start of the hold with a diamond
-      DrawFix(targetTrue.x,targetTrue.y,2,"radial");
+      //DrawFix(targetTrue.x,targetTrue.y,2,"radial");
       //DrawSquare(center.x,center.y,2,"radial")
 
       // create a vector from the current position to the center
@@ -583,16 +648,17 @@ class MovingVector
     }
     else
     {
-      this.SlewTo(new Vector(0,1));
+      this.SlewTo(new Vector(0,1),this.rightTurn);
       this.hp.StartHold(this.xpos,this.ypos);
     }
   }
-  Diam2MinPix()
+  Diam2MinPix(speed)
   {
     //let speed = this.GetSpeed()/60; //miles per minute
     //let diam = 2*speed/Math.PI; // diameter of 2minute turn in mi 
     //let diamPix = 10*diam; // in pixels
-    return this.GetSpeed()/(3*Math.PI);
+    let spd = speed==undefined?this.GetSpeed():speed;
+    return spd/(3*Math.PI);
   }
 
   GetHeading()
@@ -602,7 +668,8 @@ class MovingVector
   SetHeading(heading)
   {
     this.vector.SetDirection(heading-90);
-    this.CancelHold();
+    if (this.hp.GetLeg()==none)
+      this.CancelHold();
   }
   ColorLoop()
   {
@@ -797,10 +864,6 @@ class MovingVector
         if (this.hp.Holding())
            ctx.fillText("Hold",vt.toScreenX(this.xpos), 
                      vt.toScreenY(this.ypos+15/vt.scale));
-      }
-      if (this.hp.Holding())
-      {
-        this.hp.Draw(ctx);
       }
       if (this.radial!=undefined)
         this.radial.DrawLineToTarget();
@@ -1016,11 +1079,12 @@ class MovingVector
 const radial_initialturn=0;
 const radial_tracking=1;
 const radial_turnin=2;
-const radialStateNames=["Tracking","TurnIn"]
+const radialStateNames=["InitialTurn","Tracking","TurnIn"]
 class FlyRadial
 {
   // radial = vector to the target
   // target = {x:xpos,y:ypos}
+  // movingVector = the object that created this one
   constructor(radial,target,movingVector)
   {
     this.radial=radial;
@@ -1049,6 +1113,7 @@ class FlyRadial
     vt.ctx.lineTo(vt.toScreenX(this.target.x),vt.toScreenY(this.target.y));
     vt.ctx.stroke();
   }
+  // get a vector that moves us closer to the radial
   GetVector()
   {
     let cv = this.mv.vector;
@@ -1065,7 +1130,7 @@ class FlyRadial
     /*
     vectorToTarget takes us directly to the target. Ideally, We want to get 
     on the radial before the target. Rotating vectorToTarget by the 
-    difference between the radial and the vectorToTarget, will asymptotically
+    difference between the radial and the vectorToTarget, will asymtotically
     approach the target, so rotate by some factor greater than 1 
     */
     const maxError=30.0; 
@@ -1099,12 +1164,12 @@ const legNames=["none","entering","eastleg","northturn","westleg",
                 "southturn","traveling","initialturn"];
 class HoldPattern
 {
-  constructor(xpos,ypos,movingVector)
+  constructor(xpos,ypos,planeID,getSpeedCallback)
   {
     this.xstart=xpos;
     this.ystart=ypos;
-    this.mv=movingVector;
-    this.vt=this.mv.vt;
+    this.GetSpeed=getSpeedCallback;
+    this.planeID=planeID;
     this.holding=false;
     this.speed = null; //miles per minute
     this.diam = null; // diameter of 2minute turn in mi 
@@ -1144,6 +1209,7 @@ class HoldPattern
   {
     try
     {
+    return;
     if (!this.holding)return;
     this.ComputeOval();
     ctx.beginPath();
@@ -1167,13 +1233,13 @@ class HoldPattern
   }
   ScreenLegLen()
   {
-    return this.LegLength()*10*this.vt.scale;
+    return this.LegLength()*10*vt.scale;
   }
   CancelHold()
   {
     this.holding=false;
     this.onleg=none;
-    holdList.Remove(this.mv.drawObject.id);
+    holdList.Remove(this.planeID);
   }
   StartHold(xpos,ypos)
   {
@@ -1186,16 +1252,16 @@ class HoldPattern
   ComputeOval() // in screen coordinates
   {
     //AddStatus("in ComputeOval");
-    let testx1=this.vt.toScreenX(this.xstart);
-    let testy1=this.vt.toScreenY(this.ystart);
-    if (this.speed==this.mv.GetSpeed()/60 &&
+    let testx1=vt.toScreenX(this.xstart);
+    let testy1=vt.toScreenY(this.ystart);
+    if (this.speed==this.GetSpeed()/60 &&
         this.x1==testx1 && this.y1==testy1)return;
-    this.speed = this.mv.GetSpeed()/60; //miles per minute
+    this.speed = this.GetSpeed()/60; //miles per minute
     this.diam = 2*this.speed/Math.PI; // diameter of 2minute turn in mi 
     this.x1 = testx1;
-    this.x2 = this.x1-(this.diam*10)*this.vt.scale; 
+    this.x2 = this.x1-(this.diam*10)*vt.scale; 
     this.y1 = testy1;
-    this.y2 = this.y1-10*this.speed*this.vt.scale;
+    this.y2 = this.y1-10*this.speed*vt.scale;
     this.tcx = (this.x1+this.x2)/2;
     this.radius = Math.abs(this.tcx-this.x1);
     //AddStatus("exiting ComputeOval");
@@ -1236,6 +1302,7 @@ class HoldPattern
   }
   IsEndOfLeg(xpos,ypos)
   {
+    this.ComputeOval();
     if (this.onleg==northturn || this.onleg==southturn)return false;
     let sx = vt.toScreenX(xpos);
     let sy = vt.toScreenY(ypos);
