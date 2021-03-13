@@ -90,17 +90,17 @@ class HoldManager
 {
   constructor()
   {
-    // [x:#,y:#,planes:[],
     this.holdList=[];
   }
   // where x,y = hold entry to south turn
   Request(x,y,aircraftID)
   {
-    let found = this.holdList.filter(h=>Math.hypot(h.x-x,h.y-y)<100);
+    let found = this.holdList.filter(h=>Math.hypot(h.x-x,h.y-y)<50);
     // add the requested hold, and return a hold if there already
     // is a plane holding there.
     if (found.length==0)
     {
+      // create a new hold location
       this.holdList.push({x:x,y:y,oval:new HoldOval(x,y),planes:[aircraftID]});
       //AddStatus(JSON.stringify(holdList));
       return undefined;
@@ -108,6 +108,12 @@ class HoldManager
     found[0].planes.push(aircraftID);
     //AddStatus(JSON.stringify(holdList));
     return found[0];
+  }
+  HoldPresent(x,y,aircraftID)
+  {
+    this.Remove(aircraftID);
+    this.holdList.push({x:x,y:y,oval:new HoldOval(x,y),planes:[aircraftID]});
+    AddStatus(JSON.stringify(holdList));
   }
   Remove(aircraftID)
   {
@@ -486,6 +492,38 @@ Parameters
 Return Value
 
 *************************************************************/ 
+class State
+{
+  constructor()
+  {
+    let lastIndex=0
+    this.Heading=lastIndex++;
+    this.HeadingTurn=lastIndex++;
+    this.Hold=lastIndex++;
+    this.HoldEntryTurn=lastIndex++;
+    this.HoldPresentEntryTurn=lastIndex++;
+    this.HoldTangentTurn=lastIndex++;
+    this.HoldRadial=lastIndex++;
+    this.Radial=lastIndex++;
+    this.currentState=this.Heading;
+    this.stateNames=[
+           "Heading","HeadingTurn","Hold","HoldEntryTurn","HoldPresentEntryTurn",
+           "HoldTangentTurn","HoldRadial","Radial"];
+  }
+  SetState(state)
+  {
+    this.currentState=state;
+  }
+  GetState()
+  {
+    return this.currentState;
+  }
+  GetStateName()
+  {
+    //AddStatus("in GetStateName"+this.currentState);
+    return this.stateNames[this.currentState];
+  }
+}
 const circleObj={type:"circle",radius:15,color:"black",drag:0,gravity:0};
 const squareObj={type:"square",sidelen:15,color:"black",drag:0,gravity:0,id:0};
 const planeObj={type:"plane",length:20,width:15,color:"black",drag:0,gravity:0,id:0};
@@ -514,6 +552,7 @@ class MovingVector
     this.shortestTurn=0;
     this.leftTurn=1;
     this.rightTurn=2;
+    this.state=new State();
   }
   Stats()
   {
@@ -555,6 +594,7 @@ class MovingVector
                             target[1]-this.ypos);
     this.SlewTo(radial,this.shortestTurn);
     this.radial = new FlyRadial(radial,{x:target[0],y:target[1]},this);
+    this.state.SetState(this.state.Radial);
   }
 
   /*
@@ -593,9 +633,10 @@ class MovingVector
 
   Hold(target)
   {
+    this.CancelHold();
+    this.targetSpeed=260;
     if (target!=undefined)
     {
-      this.targetSpeed=260;
       // 2*speedInMph/60 or a 2min turn
       let diam = this.Diam2MinPix(260);
       //get("debug07").innerHTML=(diam/2).toFixed(3);
@@ -645,11 +686,14 @@ class MovingVector
 
       this.FlyRadialFromCurrentPosition(tangentTarget);
       this.hp.SetLeg(traveling,[targetTrue.x,targetTrue.y]);
+      this.state.SetState(this.state.HoldRadial);
     }
     else
     {
+      this.radial=undefined;
       this.SlewTo(new Vector(0,1),this.rightTurn);
       this.hp.StartHold(this.xpos,this.ypos);
+      this.state.SetState(this.state.HoldPresentEntryTurn);
     }
   }
   Diam2MinPix(speed)
@@ -763,6 +807,7 @@ class MovingVector
       this.CancelHold();// breaks a hold if in one
       this.radial=undefined;
       turnType=this.shortestTurn;
+      this.state.SetState(this.state.HeadingTurn);
     }
     let angleBetween=this.vector.AngleBetween(vector);
     let slewRate=this.vt.fi/333.3;
@@ -894,127 +939,6 @@ class MovingVector
       if (Math.abs(this.alt-this.targetAlt)<=deltaAlt)
         this.alt=this.targetAlt;
     }
-    //get("debug08").innerHTML="";
-    //get("debug06").innerHTML=(this.hp.GetLegName());
-    if (this.turnDeltaAngle!=0)
-    //  completed a turn
-    {
-      //AddStatus("this.turnDeltaAngle!=0");
-      let deltaAngle=this.turnTargetDirection-this.vector.GetDirection();
-      if (Math.abs(deltaAngle)<Math.abs(this.turnDeltaAngle))
-      {
-        this.vector=this.vector.ProjectOn(
-                    this.vector.Rotate(deltaAngle));
-        this.turnDeltaAngle=0;
-        // on course after a turn
-        // if in a hold, mark the beginning of the leg
-        if (this.hp.GetLeg()!=none)
-        {
-          switch (this.hp.GetLeg())
-          {
-            case entering:
-            //AddStatus("start hold, in southturn");
-            this.hp.SetLeg(southturn,[this.xpos,this.ypos]);
-            this.SlewTo(new Vector(0,-1),this.rightTurn);
-            break;
-
-            case southturn:
-            this.hp.SetLeg(westleg);
-            break;
-
-            case northturn:
-            this.hp.SetLeg(eastleg);
-            break;
-          }
-        }
-      }
-      else
-      {
-        let nextVector = this.vector.Rotate(this.turnDeltaAngle);
-        //AddStatus("Next Vector...\n"+JSON.stringify(nextVector));
-        this.vector=this.vector.ProjectOn(nextVector);
-      }
-    }
-    else if (this.radial!=undefined)
-    {
-      /*if(this.hp.GetLeg()==traveling)
-      {
-        let circle=this.hp.SouthCircle();
-        // circle={centerx:#,centery:#,radius:#}
-        if (this.IsHeadingTangent(circle))
-          AddStatus("Tangent with circle");
-      }*/
-      switch (this.radial.GetState())
-      {
-        case radial_initialturn:
-        break;
-
-        case radial_tracking:
-        if (this.radial.IsAtTarget())
-        {
-          if (this.hp.GetLeg()==traveling)
-          {
-            this.SlewTo(new Vector(0,1),this.rightTurn);
-            this.radial.SetState(radial_turnin);
-          }
-          else
-            this.radial=undefined;
-        }
-        else
-        {
-          let correction = this.radial.GetVector();
-          if (!AreEqual(this.vector.GetDirection(),correction.GetDirection()))
-          {
-            this.SlewTo(correction,this.shortestTurn);
-          }
-          //drawLine(this.xpos,this.ypos,
-          //         this.radial.target.x,this.radial.target.y);
-        }
-        break;
-
-        case radial_turnin:
-        if (AreEqual(this.GetHeading(),180))
-        {
-          //AddStatus("Heading=180");
-          this.radial=undefined;
-          this.Hold();
-        }
-        break;
-      }
-    }
-    else if (this.hp.Holding() || this.hp.GetLeg()==traveling)
-    {
-      if (this.hp.GetLeg()==traveling)
-      {
-        let target = this.hp.GetTarget();
-        let dist= Math.hypot(target.x-this.xpos,target.y-this.ypos);
-        if (dist<.1)
-        {
-          this.Hold();
-        }
-        else
-        {
-        let temp = new Vector(target.x-this.xpos,target.y-this.ypos);
-        if (!temp.IsSameDirection(this.vector))
-          this.SlewTo(temp,this.shortestTurn);
-        }
-      }
-      else if (this.hp.IsEndOfLeg(this.xpos,this.ypos))
-      {
-        switch (this.hp.GetLeg())
-        {
-          case eastleg:
-          this.SlewTo(new Vector(0,-1),this.rightTurn);
-          this.hp.SetLeg(southturn);
-          break;
-          case westleg:
-          this.SlewTo(new Vector(0,1),this.rightTurn);
-          this.hp.SetLeg(northturn);
-          break;
-        }
-        //this.hold="turn";
-      }
-    }
     if (this.targetSpeed!=undefined)
     {
       let currentSpeed = this.GetSpeed();
@@ -1030,6 +954,101 @@ class MovingVector
       else
         this.SetSpeed(newSpeed);
     }
+    /*
+    this.state.Heading
+    this.state.Hold
+    this.HoldEntryTurn
+    this.HoldTangentTurn
+    this.HoldRadial
+    this.Radial
+    this.currentState
+    */
+    let s = this.state;
+    get("debug06").innerHTML=s.GetStateName();
+    switch (this.state.GetState())
+    {
+    case s.Heading:
+      // not much to do here
+    break;
+
+    case s.HeadingTurn:
+      if (!this.Turn())
+        s.SetState(s.Heading);
+    break;
+
+    case s.Hold:
+      switch (this.hp.GetLeg())
+      {
+        case eastleg:
+        if (this.hp.IsEndOfLeg(this.xpos,this.ypos))
+        {
+          this.SlewTo(new Vector(0,-1),this.rightTurn);
+          this.hp.SetLeg(southturn);
+        }
+        break;
+
+        case westleg:
+        if (this.hp.IsEndOfLeg(this.xpos,this.ypos))
+        {
+          this.SlewTo(new Vector(0,1),this.rightTurn);
+          this.hp.SetLeg(northturn);
+        }
+        break;
+
+        case southturn:
+        if (!this.Turn(this.rightTurn))
+          this.hp.SetLeg(westleg);
+        break;
+
+        case northturn:
+        if (!this.Turn(this.rightTurn))
+          this.hp.SetLeg(eastleg);
+        break;
+      }
+    break;
+
+    case s.HoldPresentEntryTurn:
+    if (!this.Turn())
+      {
+        this.SlewTo(new Vector(0,-1),this.rightTurn);
+        this.hp.SetLeg(southturn,[this.xpos,this.ypos]);
+        s.SetState(s.Hold);
+        holdList.HoldPresent(this.xpos,this.ypos,this.drawObject.id);
+      }
+    break;
+
+    case s.HoldEntryTurn:
+      if (!this.Turn())
+      {
+        this.SlewTo(new Vector(0,-1),this.rightTurn);
+        this.hp.SetLeg(southturn,[this.xpos,this.ypos]);
+        s.SetState(s.Hold);
+      }
+    break;
+
+    case s.HoldTangentTurn:
+    break;
+
+    case s.HoldRadial:
+      this.TrackRadial();
+      if (this.radial.IsAtTarget())
+      {
+        this.radial=undefined;
+        this.SlewTo(new Vector(0,1),this.rightTurn);
+        s.SetState(s.HoldEntryTurn);
+      }
+    break;
+
+    case s.Radial:
+      this.TrackRadial();
+      if (this.radial.IsAtTarget())
+      {
+        this.radial=undefined;
+        s.SetState(s.Heading);
+      }
+
+    break;
+    }
     this.xpos+=this.vector.x;
     this.ypos+=this.vector.y;
 
@@ -1039,6 +1058,58 @@ class MovingVector
       AddStatus(err);
     }
     //AddStatus("Exiting Move()");
+  }
+
+  Turn(direction=this.shortestTurn)
+  {
+    var deltaAngle=this.turnTargetDirection-this.vector.GetDirection();
+    if (Math.abs(deltaAngle)<Math.abs(this.turnDeltaAngle))
+    {
+      this.vector=this.vector.ProjectOn(
+                  this.vector.Rotate(deltaAngle));
+      this.turnDeltaAngle=0;
+      // on course after a turn
+      return false;
+    }
+    else // keep turning
+    {
+      let turnDelta=this.turnDeltaAngle;
+      switch (direction)
+      {
+      case this.leftTurn:
+        turnDelta=-1*Math.abs(turnDelta);
+      break;
+
+      case this.rightTurn:
+        turnDelta=Math.abs(turnDelta);
+      break;
+      }
+      get("debug08").innerHTML=turnDelta.toFixed(4);
+      let nextVector = this.vector.Rotate(turnDelta);
+      //AddStatus("Next Vector...\n"+JSON.stringify(nextVector));
+      this.vector=this.vector.ProjectOn(nextVector);
+      return true;
+    }
+  }
+
+  TrackRadial()
+  {
+    if (!this.Turn())
+    {
+      let correction = this.radial.GetVector();
+      /*get("debug07").innerHTML=correction.GetDirection()-
+                               this.vector.GetDirection();
+      get("debug08").innerHTML="";
+      */
+      if (!AreEqual(this.vector.GetDirection(),correction.GetDirection()))
+      {
+        this.SlewTo(correction,this.shortestTurn);
+      }
+      else
+      {
+        //get("debug08").innerHTML="onTrack";
+      }
+    }
   }
 
   CancelHold()
@@ -1144,6 +1215,8 @@ class FlyRadial
   }
   IsAtTarget()
   {
+    let cl = {x:this.mv.xpos,y:this.mv.ypos};
+    this.dist = Math.hypot(this.target.x-cl.x,this.target.y-cl.y);
     if (this.dist<.1)
       return true;
     return false;
