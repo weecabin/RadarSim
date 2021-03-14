@@ -964,7 +964,6 @@ class MovingVector
     this.currentState
     */
     let s = this.state;
-    get("debug06").innerHTML=s.GetStateName();
     switch (this.state.GetState())
     {
     case s.Heading:
@@ -1084,7 +1083,7 @@ class MovingVector
         turnDelta=Math.abs(turnDelta);
       break;
       }
-      get("debug08").innerHTML=turnDelta.toFixed(4);
+      //get("debug08").innerHTML=turnDelta.toFixed(4);
       let nextVector = this.vector.Rotate(turnDelta);
       //AddStatus("Next Vector...\n"+JSON.stringify(nextVector));
       this.vector=this.vector.ProjectOn(nextVector);

@@ -856,11 +856,14 @@ try
       }
 
       // update the selected plane stats
-      if (count%2==0)
+      if (count>1)
       {
         let selmv = Objs.filter(x=>x.ContainsColor("green"))
         if (selmv!=undefined && selmv.length==1)
+        {
           get("debug02").innerHTML= selmv[0].Stats();
+          get("debug06").innerHTML="State: "+selmv[0].state.GetStateName();
+        }
       }
 
       //AddStatus("Clear, then draw everything");
@@ -888,13 +891,13 @@ try
                     " "+(Math.hypot(x1-x0,y1-y0)/(10*vt.scale)).toFixed(1)+"mi";
         }
       }
-      get("debug01").innerHTML=Objs.length+" Plane(s)";
     }
     let t1=performance.now();
     let delta = t1-t0;
     if (delta>maxPerformance)maxPerformance=delta;
-    get("debug04").innerHTML=delta.toFixed(1)+"/max="+
+    get("debug04").innerHTML="Execution Time: "+delta.toFixed(1)+"/max="+
                              maxPerformance.toFixed(1)+"ms";
+    get("debug01").innerHTML=Objs.length+" Plane(s)";
     }
     catch(err)
     {
