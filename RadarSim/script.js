@@ -160,6 +160,11 @@ function BtnClicked(btn)
     Debug(btn);
     break;
 
+    case "Help":
+    AddStatus("in Help");
+    window.location.href="../RadarSimHelp/index.html";
+    break;
+
    case "grid":
    if (btn.innerHTML.includes("Clear"))
    {

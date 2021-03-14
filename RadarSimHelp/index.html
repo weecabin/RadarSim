@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width" />
+  <title>Radar Sim Help</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Radar Sim Help</h1>
+  <ul>
+    <li>General</li>
+    Whenever the screen is touched, the closest aircraft will be selected.<br>
+    Drag a vector by touching and dragging your finger. The drag vector will be relative to the aircraft closest to the point where you put your finger down. if you find you've selected the wrong aircraft, drag back to the aircraft and lift. Drag operations are canceled if the vector is too short.<br>Lifting your finger will send a new heading to the selected plane.<br>If you drag a vector within 10mi of an existing hold oval fix, then select Hold from the altitude menu, a hold at fix will be sent to the selected aircraft.
+    <li>Object</li>
+    Guide planes to the airport. Planes will snap to the localizer, as long as the intercept vector is within 30deg of the localizer.<br>Once at the runway, planes will be removed from the simulation. 
+    <li>Menu
+    </li>
+      <ul>
+        <li>Start</li>
+        Starts the simulation.
+        <li>Options</li>
+        Sets various runtime variables
+        <ul>
+          <li>Radius Turn</li>
+          Set= Two min turn is used for all heading changes.<br>
+          Cleared= All turns are instantaneous
+          <li>Alt On Vector</li>
+          Set= The altitude menu is displayed following every drag vector.
+          <li>Vector/Sketch</li>
+          Touches drag vectors or draw on the screen.
+          <li>Speed</li>
+          Initial speed of planes added to the simulation.
+          <li>VS</li>
+          Sets VS for altitude changes
+        </ul>
+        <li>AddPlane</li>
+        Adds a plane at the triangle located at the upper left corner of the screen
+        <li>AddPlanes</li>
+        Periodically adds planes at the outer limits of the current zoom setting.<br> Set the parameters then click Start in the AddPlanes menu.
+        <ul>
+          <li>Start/Stop</li>
+          Starts and Stops adding planes
+          <li>Left/Top/Right/Bottom</li>
+          Defines the portions of the screen where planes are added.
+          <li>Alt+</li>
+          Planes are added at an altitude determined by their range to the airport. 3000' for every 10mi is the base altitude. The number in Alt+ is added to the base altitude.
+          <li>Rate</li>
+          The rate at which planes are added.
+          <li>Dist+</li>
+          The range from the airport is increased by this value every cycle through the entry positions defined by Left/Top/Right/Bottom
+        </ul>
+        <li>Altitude</li>
+        Sets the selected planes altitude, a radial, or a hold to fly.
+        <ul>
+          <li>Hold</li>
+          If clicked immediately after dragging a vector, a hold at location is issued.<br>If the altitude menu was manually selected, a hold present position is issued for the selected aircraft.
+          <li>Radial</li>
+          The aircraft will fly the radial defined by the drag vector.
+          <li>Altitudes...</li>
+          The selected aircraft will climb or descend to the target altitude.
+        </ul>
+        <li>Speed</li>
+        Sets the selected aircraft speed. 
+        <li>Tools</li>
+        <ul>
+          <li>Draw Grid/Clear Grid</li>
+          Draws/Clears a fix every 20mi
+          <li>Clear Sketch</li>
+          Clears any sketching you've done. 
+          <li>Debug On</li>
+          Opens a status window at the bottom of the screen.<br>The main use is debug
+          <li>Clear Status</li>
+          Clears the status window.
+        </ul>
+        </ul>
+      </ul>
+  </ul>
+  <script src="img/jquery.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
