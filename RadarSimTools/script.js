@@ -828,6 +828,12 @@ class MovingVector
     this.turnTargetDirection=vector.GetDirection();
   }
 
+  DescentDistance(fromAlt,toAlt,speedMPH)
+  {
+    let t = Math.abs((fromAlt-toAlt)/(vt.vs/60)); // in seconds
+    let s = speedMPH/3600; // miles per second
+    return s*t; // distance traveled while descending
+  }
   // drawArray = [{action:"line"/"move",dx:1,dy:1}, ...]
   // draws relative to the current xpos,ypos location
   DrawPath(ctx,drawArray,rotate=0)
@@ -912,6 +918,19 @@ class MovingVector
       }
       if (this.radial!=undefined)
         this.radial.DrawLineToTarget();
+      if (this.ContainsColor("green"))
+      {
+        if (this.alt != this.targetAlt)
+        {
+           let dir = this.vector.GetDirection();
+           let dist = 10*this.DescentDistance(
+                    this.alt,this.targetAlt,this.GetSpeed())*vt.scale;
+           ctx.beginPath();
+           ctx.arc(vt.toScreenX(this.xpos), vt.toScreenY(this.ypos),dist, 
+             ToRadians(dir+5), ToRadians(dir-5),true);
+           ctx.stroke()
+        } 
+      }
       break;
     }
     //AddStatus("Exiting Draw");
@@ -1100,6 +1119,7 @@ class MovingVector
                                this.vector.GetDirection();
       get("debug08").innerHTML="";
       */
+      //get("debug07").innerHTML=this.radial.TrackError().toFixed(2);
       if (!AreEqual(this.vector.GetDirection(),correction.GetDirection()))
       {
         this.SlewTo(correction,this.shortestTurn);
@@ -1176,6 +1196,10 @@ class FlyRadial
   {
     return radialStateNames[this.GetState()];
   }
+  TrackError()
+  {
+    return this.trackError;
+  }
   DrawLineToTarget()
   {
     vt.ctx.beginPath();
@@ -1197,6 +1221,7 @@ class FlyRadial
       // turn to parallel the radial
       return this.radial.Unit();
     let headingError=this.radial.AngleBetween(vectorToTarget);
+    this.trackError=Math.sin(ToRadians(headingError))*this.dist;
     /*
     vectorToTarget takes us directly to the target. Ideally, We want to get 
     on the radial before the target. Rotating vectorToTarget by the 
