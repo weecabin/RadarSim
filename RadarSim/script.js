@@ -110,6 +110,21 @@ function BtnClicked(btn)
   btn.parentElement.style.display="";
   switch (btn.name)
   {
+    case "airspace":
+    if (btn.innerHTML.includes("on"))
+    {
+      btn.innerHTML="Airspace off";
+      let x = runway1.x;
+      let y = (runway1.y+runway2.y)/2;
+      DrawCircle(x,y,500,"airspace");
+    }
+    else
+    {
+      btn.innerHTML="Airspace on";
+      ClearSketch("airspace");
+    }
+    break;
+
     case "startsim":
     if (btn.innerHTML=="Start")
     {
@@ -257,9 +272,19 @@ function redrawCanvas(heightPercent = 80, widthPercent = 100)
   canvasRect = canvas.getBoundingClientRect();
   for (let i = 0; i < drawings.length; i++) 
   {
+    
     const line = drawings[i];
-    drawLine(vt.toScreenX(line.x0), vt.toScreenY(line.y0),
-      vt.toScreenX(line.x1), vt.toScreenY(line.y1));
+    switch (line.type)
+    {
+    case "line":
+      drawLine(vt.toScreenX(line.x0), vt.toScreenY(line.y0),
+        vt.toScreenX(line.x1), vt.toScreenY(line.y1));
+    break;
+
+    case "circle":
+      drawCircle(line.x,line.y,line.radius,line.color);
+    break;
+    }
   }
   if (Objs != undefined) 
   {
@@ -288,14 +313,24 @@ function drawLine(x0, y0, x1, y1) // used in redrawCanvas
   context.stroke();
 }
 
+function drawCircle(x,y,radius,color)// used in redrawCanvas
+{
+  context.beginPath()
+  context.arc(vt.toScreenX(x), vt.toScreenY(y),radius*vt.scale, 0, 2*Math.PI,true);
+  context.strokeStyle=color;
+  context.stroke();
+}
+
 function DrawSquare(x,y,size=2,label="line")
 {
   Draw(label,x,y,[[-size,-size,-size,size],[-size,size,size,size],
                    [size,size,size,-size],[size,-size,-size,-size]]);
 }
 
-function DrawCircle(x,y,radius,label="line")
+function DrawCircle(x,y,radius,label="circle",color="blue")
 {
+  drawings.push({type:"circle",lbl:label,color:color,x:x,y:y,radius:radius});
+  //AddStatus(JSON.stringify(drawings));
 }
 
 function DrawFix(x,y,size=5,label="fix")
@@ -327,10 +362,10 @@ function DrawRunway(x,y,runwayLen,coneLen,coneWidth)
 /*
 deltaLine = [[dx0,dy0,dx1,dy1],...]
 */
-function Draw(label,x,y,deltaLine)
+function Draw(label,x,y,deltaLine,type="line")
 {
   for (let pt of deltaLine)
-    drawings.push({lbl:label,x0:x+pt[0],y0:y+pt[1],x1:x+pt[2],y1:y+pt[3]});
+    drawings.push({type:type,lbl:label,x0:x+pt[0],y0:y+pt[1],x1:x+pt[2],y1:y+pt[3]});
 }
 
 // clears all line types passed in type
@@ -342,6 +377,7 @@ function ClearSketch(linetype)
   {
     if (linetype.includes(drawings[i].lbl))
     {
+      AddStatus("found it");
       drawings.splice(i,1);
     }
   }
@@ -433,6 +469,7 @@ function onTouchMove(event)
       // add to history
       drawings.push(
       {
+        type: "line",
         lbl: "line",
         x0: prevScaledX,
         y0: prevScaledY,

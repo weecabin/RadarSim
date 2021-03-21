@@ -927,7 +927,7 @@ class MovingVector
                     this.alt,this.targetAlt,this.GetSpeed())*vt.scale;
            ctx.beginPath();
            ctx.arc(vt.toScreenX(this.xpos), vt.toScreenY(this.ypos),dist, 
-             ToRadians(dir+5), ToRadians(dir-5),true);
+             ToRadians(dir+3), ToRadians(dir-3),true);
            ctx.stroke()
         } 
       }
