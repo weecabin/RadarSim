@@ -485,7 +485,7 @@ function onTouchMove(event)
       //AddStatus("not sketching");
       if (dragmv == undefined || dragmv.tag!="drag")
         dragmv=ClosestPlane(scaledX, scaledY);
-      if (dragmv.tag == "none") 
+      if (dragmv.tag == "none" || dragmv.tag=="missed") 
         dragmv.tag="drag";
       //AddStatus("setting color green");
       let green = Objs.filter(x=>x.ContainsColor("green"));
@@ -773,6 +773,7 @@ function AddPlane()
   let vlen=VectorLength(speed,vt.FrameIntervalInSeconds(),10);
   //AddStatus("vector length="+vlen);
   let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
+  //let movingVector = new MovingVector(vlen,0,runway1.x-170,runway1.y-20,plane,vt,5000);
   movingVector.vector.SetDirection(45);
   //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
