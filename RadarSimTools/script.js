@@ -213,7 +213,25 @@ class ViewTools
 }
         
 
+/*************************************************************
+**************************************************************
+                         GSAltitude(distance,slope=3)
 
+Description
+
+Parameters
+distance: miles out in nm
+slope: glide slope degrees
+
+Return Value
+GS altitude in ft
+
+*************************************************************/ 
+
+function GSAltitude(distance,slope=3)
+{
+  return Math.abs(Math.tan(ToRadians(slope))*distance*ftPerNm);
+}
 /*************************************************************
 **************************************************************
                          MvSpeed(movingVector,framerate)
@@ -278,6 +296,7 @@ const AreEqual = (one, other, epsilon = EPSILON) =>
   Math.abs(one - other) < epsilon;
 
 const FixHeading = heading => heading%360<0?360+heading%360:heading%360;
+const ftPerNm = 6076;
 /*************************************************************
 **************************************************************
 FunctionName: get
@@ -793,6 +812,11 @@ class MovingVector
   SetAltitude(alt)
   {
     this.targetAlt=alt;
+  }
+
+  GetAltitude()
+  {
+    return this.alt;
   }
 
   CancelSlew()

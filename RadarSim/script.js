@@ -790,8 +790,8 @@ function StartAnimation(start)
     Objs=[];
     runAnimate=true;
     Draw("hanger",0,0,[[0,0,30,0],[0,0,0,30],[0,30,30,0]]);
-    DrawRunway(runway1.x,runway1.y,20,100,10);
-    DrawRunway(runway2.x,runway2.y,20,100,10);
+    DrawRunway(runway1.x,runway1.y,20,110,10);
+    DrawRunway(runway2.x,runway2.y,20,110,10);
     Animate();
   }
 }
@@ -862,8 +862,9 @@ try
         let r1y = runway1.y;
         let r2x = runway2.x;
         let r2y = runway2.y;
-        let dist1 = Math.hypot(mvx-r1x,mvy-r1y);
-        let dist2 = Math.hypot(mvx-r2x,mvy-r2y);
+        let dist1 = Math.hypot(mvx-r1x,mvy-r1y)-10; // runway is 2mi long
+        let dist2 = Math.hypot(mvx-r2x,mvy-r2y)-10;
+        let dist=dist1<dist2?dist1:dist2;
         let direction = mv.vector.GetDirection();
         if (mv.tag=="ongs")
         {
@@ -874,25 +875,40 @@ try
           }
           if (dist1<120 && (Math.abs(mv.GetSpeed()-150)>1))
             mv.SlewToSpeed(150);
+          let gsAlt=GSAltitude(dist/10);
+          if (mv.GetAltitude()>gsAlt)
+            mv.alt=mv.targetAlt=gsAlt;
         }
         else
         {
-          if (((dist1<300) || (dist2<300)) && 
+          
+          if ((dist1<300) && 
               (((direction<31) || (direction>329)) ||
                ((direction<211) && (direction>149))) &&
               ((Math.abs(mvy-r1y)<2) || (Math.abs(mvy-r2y)<2)))
           {
-            mv.CancelSlew();
-            if ((direction<211) && (direction>149))
-              mv.vector.SetDirection(180);
+            if (mv.GetAltitude()>GSAltitude(dist/10))
+            {
+              AddStatus("missed");
+              mv.tag="missed";
+              get("debug07").innerHTML=
+                  "alt:"+mv.GetAltitude().toFixed(1)+"/GS:"+
+                  GSAltitude(dist/10).toFixed(1);
+            }
             else
-              mv.vector.SetDirection(0);
-            if (Math.abs(mvy-r1y)<2)
-              mv.ypos=r1y;
-            else 
-              mv.ypos=r2y;
-            mv.tag="ongs";
-            mv.SetColor("silver");
+            {
+              mv.CancelSlew();
+              if ((direction<211) && (direction>149))
+                mv.vector.SetDirection(180);
+              else
+                mv.vector.SetDirection(0);
+              if (Math.abs(mvy-r1y)<2)
+                mv.ypos=r1y;
+              else 
+                mv.ypos=r2y;
+              mv.tag="ongs";
+              mv.SetColor("silver");
+            }
           }
         }
       }
