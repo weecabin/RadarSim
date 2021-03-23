@@ -772,8 +772,8 @@ function AddPlane()
   let speed = Number(get("speed").value)
   let vlen=VectorLength(speed,vt.FrameIntervalInSeconds(),10);
   //AddStatus("vector length="+vlen);
-  //let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
-  let movingVector = new MovingVector(vlen,0,runway1.x-170,runway1.y-10,plane,vt,3000);
+  let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
+  //let movingVector = new MovingVector(vlen,0,runway1.x-170,runway1.y-10,plane,vt,3000);
   movingVector.vector.SetDirection(45);
   //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
