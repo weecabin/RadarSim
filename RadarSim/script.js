@@ -772,8 +772,8 @@ function AddPlane()
   let speed = Number(get("speed").value)
   let vlen=VectorLength(speed,vt.FrameIntervalInSeconds(),10);
   //AddStatus("vector length="+vlen);
-  let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
-  //let movingVector = new MovingVector(vlen,0,runway1.x-170,runway1.y-20,plane,vt,5000);
+  //let movingVector = new MovingVector(vlen,0,0,0,plane,vt);
+  let movingVector = new MovingVector(vlen,0,runway1.x-170,runway1.y-10,plane,vt,3000);
   movingVector.vector.SetDirection(45);
   //AddStatus(JSON.stringify(movingVector));
   Objs.push(movingVector);
@@ -886,7 +886,7 @@ try
           if ((dist1<300) && 
               (((direction<31) || (direction>329)) ||
                ((direction<211) && (direction>149))) &&
-              ((Math.abs(mvy-r1y)<2) || (Math.abs(mvy-r2y)<2)))
+              ((Math.abs(mvy-r1y)<5) || (Math.abs(mvy-r2y)<5)))
           {
             if (mv.GetAltitude()>GSAltitude(dist/10))
             {
@@ -899,14 +899,13 @@ try
             else
             {
               mv.CancelSlew();
+              let radial = new Vector(1,0);
+              let target = [r1x,r1y];
               if ((direction<211) && (direction>149))
-                mv.vector.SetDirection(180);
-              else
-                mv.vector.SetDirection(0);
-              if (Math.abs(mvy-r1y)<2)
-                mv.ypos=r1y;
-              else 
-                mv.ypos=r2y;
+                radial.SetDirection(180);
+              if (Math.abs(mvy-r2y)<5)
+                target=[r2x,r2y];
+              mv.Track(radial,target);
               mv.tag="ongs";
               mv.SetColor("silver");
             }

@@ -605,6 +605,16 @@ class MovingVector
     "View: "+JSON.stringify(this.view);
     return ret;
   }
+
+  Track(vect,target)
+  {
+    let direct=new Vector(target[0]-this.xpos,
+                            target[1]-this.ypos);
+    this.SlewTo(direct,this.shortestTurn);
+    this.radial = new FlyRadial(vect,{x:target[0],y:target[1]},this,false);
+    this.state.SetState(this.state.Radial);
+  }
+
   FlyRadialFromCurrentPosition(target)
   {
     if (target==undefined)
@@ -1199,7 +1209,7 @@ class FlyRadial
   // radial = vector to the target
   // target = {x:xpos,y:ypos}
   // movingVector = the object that created this one
-  constructor(radial,target,movingVector)
+  constructor(radial,target,movingVector,drawRadial=true)
   {
     this.radial=radial;
     this.target=target; //true position
@@ -1207,6 +1217,7 @@ class FlyRadial
     this.state=radial_tracking;
     this.startx=this.mv.xpos;
     this.starty=this.mv.ypos;
+    this.drawRadial=drawRadial;
   }
   GetState()
   {
@@ -1226,6 +1237,7 @@ class FlyRadial
   }
   DrawLineToTarget()
   {
+    if (!this.drawRadial)return;
     vt.ctx.beginPath();
     vt.ctx.moveTo(vt.toScreenX(this.startx),vt.toScreenY(this.starty));
     vt.ctx.lineTo(vt.toScreenX(this.target.x),vt.toScreenY(this.target.y));
